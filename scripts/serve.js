@@ -1,5 +1,5 @@
 // Local server: static site/ + a small API for the Claude agent and human approvals.
-// Usage: node --env-file-if-exists=.env scripts/serve.js [port]
+// Usage: node scripts/serve.js [port]   (reads .env itself)
 import { createServer } from 'node:http';
 import { readFile, writeFile } from 'node:fs/promises';
 import { existsSync, readFileSync } from 'node:fs';
@@ -7,6 +7,11 @@ import { extname, join, normalize } from 'node:path';
 import { MEMBERS, COMMUNITIES, ZONES, LOAD_SHAPES } from '../src/community.js';
 import { ADJACENT_START } from '../src/rules42c.js';
 
+// .env wins over variables already set in the shell (a stale global ANTHROPIC_API_KEY broke this once).
+if (existsSync('.env')) for (const line of readFileSync('.env', 'utf8').split(String.fromCharCode(10))) {
+  const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/);
+  if (m) process.env[m[1]] = m[2];
+}
 const root = join(process.cwd(), 'site');
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png' };
 const port = Number(process.argv[2] ?? 5173);
