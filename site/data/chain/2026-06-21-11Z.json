@@ -236,5 +236,16 @@
  "txExpected": 2,
  "ledgerMatchesChain": true,
  "mismatches": [],
- "verifiedAt": "2026-11-06T19:18:36.467Z"
+ "verifiedAt": "2026-11-06T20:20:45.595Z",
+ "duplicateSettlement": {
+  "signatures": [
+   "2bpKLSo5rup318JgZtjFaXVgiFbJMTtB3zjn8bvHFDB1LGUwCGzZgGawfqBcDFnp7WpRSQ5z8HDGGsT8JTAxbGCH",
+   "bvsESM5hJKzjps8BR3thhtZUCjbr5KwaHS3nsbqSG6MLrxUZQkWH6P5CmCWtccQWsEmyyzxvTB7doekvoB3RMzg"
+  ],
+  "note": "Operator error 2026-11-06 ~21:20 CET: the same hour was settled a second time on devnet (identical amounts) after the record file had been moved. Superseded by a chain-based duplicate check in settle-onchain.js. Test tokens only."
+ },
+ "duplicatesOnChain": [
+  "2bpKLSo5rup318JgZtjFaXVgiFbJMTtB3zjn8bvHFDB1LGUwCGzZgGawfqBcDFnp7WpRSQ5z8HDGGsT8JTAxbGCH",
+  "bvsESM5hJKzjps8BR3thhtZUCjbr5KwaHS3nsbqSG6MLrxUZQkWH6P5CmCWtccQWsEmyyzxvTB7doekvoB3RMzg"
+ ]
 }

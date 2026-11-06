@@ -32,8 +32,13 @@ const tree = buildTree(h.lines);
 const memo = memoFor(h.hourStartMs, tree.root, h.lines.length);
 
 const conn = new Connection(process.env.SOLANA_RPC ?? clusterApiUrl('devnet'), 'confirmed');
-const sigInfos = await retry(() => conn.getSignaturesForAddress(new PublicKey(dev.operator), { limit: 100 }));
-const mine = sigInfos.filter((s) => !s.err && s.memo?.includes(memo)).reverse();
+const outFile = `data/chain/${dayArg}/${new Date(h.hourStartMs).toISOString().slice(11, 13)}Z.json`;
+const prev = existsSync(outFile) ? JSON.parse(readFileSync(outFile)) : {};
+const sigInfos = await retry(() => conn.getSignaturesForAddress(new PublicKey(dev.operator), { limit: 1000 }));
+// The record's own signatures are canonical; any other tx with the same memo is a duplicate, reported separately.
+const withMemo = sigInfos.filter((s) => !s.err && s.memo?.includes(memo)).reverse();
+const mine = prev.signatures ? withMemo.filter((s) => prev.signatures.includes(s.signature)) : withMemo;
+const duplicates = withMemo.filter((s) => !mine.includes(s)).map((s) => s.signature);
 
 const owner = {}; // token account -> party id
 for (const [c, p] of Object.entries(dev.pools)) owner[p.tokenAccount] = `pool:${c}`;
@@ -62,18 +67,16 @@ const mismatches = [...ids].filter((id) => (ledgerDelta[id] ?? 0n) !== (chainDel
   .map((id) => ({ id, ledger: String(ledgerDelta[id] ?? 0n), chain: String(chainDelta[id] ?? 0n) }));
 const expectedTx = Math.ceil(h.transfers.length / 8);
 
-const outFile = `data/chain/${dayArg}/${new Date(h.hourStartMs).toISOString().slice(11, 13)}Z.json`;
-const prev = existsSync(outFile) ? JSON.parse(readFileSync(outFile)) : {};
 const record = {
   ...prev,
   status: mine.length === expectedTx && mismatches.length === 0 ? 'settled' : mine.length === 0 ? 'not-found' : 'mismatch',
   day: dayArg, hourStartMs: h.hourStartMs, rules: rules === '2028' ? '2028-06-01' : 'slot date',
   root: tree.root, memo, lines: h.lines, transfers: h.transfers, gross: h.gross,
   signatures: mine.map((s) => s.signature), txFound: mine.length, txExpected: expectedTx,
-  ledgerMatchesChain: mine.length > 0 && mismatches.length === 0, mismatches,
+  ledgerMatchesChain: mine.length > 0 && mismatches.length === 0, mismatches, duplicatesOnChain: duplicates,
   verifiedAt: new Date().toISOString(),
 };
 mkdirSync(`data/chain/${dayArg}`, { recursive: true });
 writeFileSync(outFile, JSON.stringify(record, null, 1));
-console.log(`${outFile}: status=${record.status} tx ${mine.length}/${expectedTx}, ledger==chain ${record.ledgerMatchesChain}`, mismatches);
+console.log(`${outFile}: status=${record.status} tx ${mine.length}/${expectedTx}, ledger==chain ${record.ledgerMatchesChain}, duplicates ${duplicates.length}`, mismatches);
 if (mine[0]) console.log(`https://explorer.solana.com/tx/${mine[0].signature}?cluster=devnet`);

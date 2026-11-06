@@ -4,7 +4,7 @@
 // irradiance forecast. NOTE: in this simulation the same irradiance series is used as forecast and as
 // actual, so forecast error is not modelled (results are an upper bound for this effect).
 import { matchDay } from './match.js';
-import { TARIFF, localPriceMicroPerWh, ctPerKwhToMicroPerWh } from './config.js';
+import { TARIFF, localPriceMicroPerWh, ctPerKwhToMicroPerWh, sharedAllInMicroPerWh } from './config.js';
 import { zonesMayShare } from './rules42c.js';
 
 export const FLEX = {
@@ -66,7 +66,7 @@ export function planAgent(day, world, parts, opts = {}) {
     const spare = day.slots.map((_, i) => allowed(i).reduce((a, c) => a + spareBy[c][i], 0));
     // Spare used by this member is gone for the next flex member (own community first).
     const use = (i, wh) => { for (const c of allowed(i)) { const x = Math.min(spareBy[c][i], wh); spareBy[c][i] -= x; wh -= x; if (!wh) break; } };
-    const cost = (i) => (spare[i] > 0 ? localPriceMicroPerWh(day.slots[i].priceEurMWh) : retail) * 1e6 + day.slots[i].priceEurMWh;
+    const cost = (i) => (spare[i] > 0 ? sharedAllInMicroPerWh(localPriceMicroPerWh(day.slots[i].priceEurMWh)) : retail) * 1e6 + day.slots[i].priceEurMWh;
     const order = day.slots.map((_, i) => i).filter((i) => p.inWindow[i]).sort((a, b) => cost(a) - cost(b) || a - b);
     let left = p.movable;
     for (const i of order) {
@@ -81,11 +81,11 @@ export function planAgent(day, world, parts, opts = {}) {
   return plan;
 }
 
-// Cost for the flex members over a day: local purchases + grid import at the retail tariff.
+// Cost for the flex members over a day: local purchases (energy + grid charges) + grid import at the retail tariff.
 export function flexCost(match, ids) {
   const retail = ctPerKwhToMicroPerWh(TARIFF.retailCt);
   let micro = 0, gridWh = 0, localWh = 0;
-  for (const l of match.legs) if (ids.includes(l.memberId) && l.side === 'buy') { micro += l.amountMicro; localWh += l.wh; }
+  for (const l of match.legs) if (ids.includes(l.memberId) && l.side === 'buy') { micro += l.amountMicro + l.wh * ctPerKwhToMicroPerWh(TARIFF.gridChargesCt); localWh += l.wh; }
   for (const g of match.grid) if (ids.includes(g.memberId) && g.side === 'import') { micro += g.wh * retail; gridWh += g.wh; }
   return { micro, gridWh, localWh };
 }

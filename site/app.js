@@ -323,6 +323,7 @@ async function viewVerify(file) {
       ${row('c4', 'Token movements on-chain equal the netted transfers, to the micro-euro')}
       ${row('c5', 'Change one line by €0.000001 → the root no longer matches')}
     </div>
+    ${rec.duplicateSettlement ? `<div class="card" style="margin-top:14px"><h2 class="no">Known issue: duplicate settlement</h2><p class="sub" style="margin:0">${esc(rec.duplicateSettlement.note)}</p>${rec.duplicateSettlement.signatures.map((s) => `<p class="mono"><a href="${explorer(s)}" target="_blank">${s}</a></p>`).join('')}</div>` : ''}
     <div class="card" style="margin-top:14px"><h2>Published memo</h2><p class="mono">${esc(rec.memo)}</p>
       ${rec.signatures.map((s) => `<p class="mono"><a href="${explorer(s)}" target="_blank">${s}</a></p>`).join('')}</div>
     <div class="card" style="margin-top:14px"><h2>Netted transfers (${rec.transfers.length}, instead of ${rec.gross.payments} separate 15-minute payments)</h2><div class="tablewrap"><table>

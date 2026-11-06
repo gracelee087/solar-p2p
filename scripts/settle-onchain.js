@@ -36,6 +36,11 @@ const party = (id) => (id.startsWith('pool:') ? { ...dev.pools[id.slice(5)], key
 const tree = buildTree(h.lines);
 const memo = memoFor(h.hourStartMs, tree.root, h.lines.length);
 
+// Chain-based duplicate check: refuse if any operator transaction already carries this hour's root.
+const prior = await conn.getSignaturesForAddress(operator.publicKey, { limit: 1000 });
+const dup = prior.find((x) => !x.err && x.memo?.includes(`root=${tree.root}`));
+if (dup) { console.error(`already settled on-chain (tx ${dup.signature}); refusing to pay twice`); process.exit(1); }
+
 const sigs = [];
 for (let i = 0; i < h.transfers.length; i += PER_TX) {
   const chunk = h.transfers.slice(i, i + PER_TX);
