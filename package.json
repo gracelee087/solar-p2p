@@ -6,7 +6,9 @@
   "scripts": {
     "fetch": "node scripts/fetch-day.js",
     "sim": "node scripts/run-day.js",
-    "test": "node --test"
+    "test": "node --test",
+    "serve": "node --env-file-if-exists=.env scripts/serve.js",
+    "build": "node scripts/build-site.js"
   },
   "dependencies": {
     "@solana/spl-token": "^0.4.15",

@@ -242,6 +242,11 @@ async function viewMember() {
         ${lines.map((x, k) => `<tr><td>${hhmm(x.h.hourStartMs)}</td><td class="num">${kwh(x.line.whBought)}</td><td class="num">${kwh(x.line.whSold)}</td><td class="num">${eur(x.line.netMicro)}</td><td><button class="btn" data-k="${k}">check</button> <span id="p${k}"></span></td></tr>`).join('')}
         </table></div></div>
     </div>
+    <div class="card" style="margin-top:14px"><h2>Ask your energy agent</h2>
+      <p class="sub" style="margin:0 0 8px">Write what you want in your own words, e.g. a minimum price for selling, when flexible equipment may run, or a new monthly spending limit. The agent (Claude) only proposes and simulates on ${state.day}; nothing changes until you approve.</p>
+      <div class="controls" style="margin:0"><input id="ask" style="flex:1;min-width:220px;font:inherit;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink)" maxlength="500" placeholder="Type a request…"/><button class="btn" id="askBtn">Ask</button></div>
+      <div id="agentOut"></div>
+    </div>
     ${mem.kind === 'large' ? '<p class="reason">✕ Not eligible: §42c EnWG energy sharing is open to households, public bodies and micro/small/medium enterprises only. This member buys from the grid.</p>' : ''}
     ${dev ? `<p class="sub mono">Wallet ${dev.owner} · token account <a href="https://explorer.solana.com/address/${dev.tokenAccount}?cluster=devnet" target="_blank">${dev.tokenAccount.slice(0, 8)}…</a></p>` : ''}`;
   document.getElementById('msel').onchange = (e) => { location.hash = `#/member/${e.target.value}`; };
@@ -253,6 +258,34 @@ async function viewMember() {
     const ok = (await verifyProof(line, proof, h.root)) && tree.root === h.root;
     document.getElementById('p' + b.dataset.k).innerHTML = ok ? `<span class="ok">✓ ${proof.length}-step proof</span>` : '<span class="no">✕ mismatch</span>';
   }));
+  const out = document.getElementById('agentOut');
+  const ask = async () => {
+    const text = document.getElementById('ask').value.trim();
+    if (!text) return;
+    out.innerHTML = '<p class="wait">Thinking…</p>';
+    try {
+      const r = await fetch('api/agent', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text, memberId: id, day: state.day, rules: state.rules }) });
+      const j = await r.json();
+      if (!r.ok) { out.innerHTML = `<p class="reason">${esc(j.error)}</p>`; return; }
+      out.innerHTML = `<p style="white-space:pre-wrap">${esc(j.reply)}</p>` + j.proposals.map((p, k) => {
+        const e = p.effect;
+        const rows = e ? `<table><tr><th></th><th class="num">Sold</th><th class="num">Bought</th><th class="num">Grid in</th><th class="num">Net for the day</th></tr>
+          ${[['Now', e.before], ['With this', e.after]].map(([l, v]) => `<tr><td>${l}</td><td class="num">${v.sold_kwh.toFixed(1)} kWh</td><td class="num">${v.bought_kwh.toFixed(1)} kWh</td><td class="num">${v.grid_import_kwh.toFixed(1)} kWh</td><td class="num">€${v.net_eur_for_the_day.toFixed(2)}</td></tr>`).join('')}</table>` : '';
+        return `<div class="card" style="margin-top:10px"><b>Proposal:</b> <span class="mono">${esc(JSON.stringify(p.proposal))}</span>${rows}
+          <div class="controls" style="margin:8px 0 0"><button class="btn" data-ap="${k}">Approve</button><span id="ap${k}"></span></div></div>`;
+      }).join('');
+      out.querySelectorAll('button[data-ap]').forEach((b) => (b.onclick = async () => {
+        const k = b.dataset.ap;
+        b.disabled = true;
+        document.getElementById('ap' + k).innerHTML = '<span class="wait">applying…</span>';
+        const r2 = await fetch('api/approve', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ proposal: j.proposals[k].proposal }) });
+        const a = await r2.json();
+        document.getElementById('ap' + k).innerHTML = r2.ok ? `<span class="ok">✓ applied</span>${a.explorer ? ` · <a href="${a.explorer}" target="_blank">on-chain approval</a>` : ''}` : `<span class="no">${esc(a.error)}</span>`;
+      }));
+    } catch (e) { out.innerHTML = `<p class="reason">Agent unavailable (${esc(e.message)}). The static demo has no server.</p>`; }
+  };
+  document.getElementById('askBtn').onclick = ask;
+  document.getElementById('ask').onkeydown = (e) => { if (e.key === 'Enter') ask(); };
   if (dev) rpc('getTokenAccountBalance', [dev.tokenAccount]).then(async () => {
     const info = await rpc('getAccountInfo', [dev.tokenAccount, { encoding: 'jsonParsed' }]);
     const t = info.value.data.parsed.info;
