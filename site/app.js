@@ -272,14 +272,22 @@ async function viewMember() {
     document.getElementById('p' + b.dataset.k).innerHTML = ok ? `<span class="ok">✓ ${proof.length}-step proof</span>` : '<span class="no">✕ mismatch</span>';
   }));
   const out = document.getElementById('agentOut');
+  // Demo password for the agent (kept for this browser tab only).
+  const demoPw = () => {
+    let pw = null;
+    try { pw = sessionStorage.getItem('demoPw'); } catch {}
+    if (!pw) { pw = prompt('Demo password for the AI agent:') ?? ''; try { sessionStorage.setItem('demoPw', pw); } catch {} }
+    return pw;
+  };
+  const forgetPw = () => { try { sessionStorage.removeItem('demoPw'); } catch {} };
   const ask = async () => {
     const text = document.getElementById('ask').value.trim();
     if (!text) return;
     out.innerHTML = '<p class="wait">Thinking…</p>';
     try {
-      const r = await fetch('api/agent', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text, memberId: id, day: state.day, rules: state.rules }) });
+      const r = await fetch('api/agent', { method: 'POST', headers: { 'content-type': 'application/json', 'x-demo-password': demoPw() }, body: JSON.stringify({ text, memberId: id, day: state.day, rules: state.rules }) });
       const j = await r.json();
-      if (!r.ok) { out.innerHTML = `<p class="reason">${esc(j.error)}</p>`; return; }
+      if (!r.ok) { if (r.status === 401) forgetPw(); out.innerHTML = `<p class="reason">${esc(j.error)}</p>`; return; }
       out.innerHTML = `<p style="white-space:pre-wrap">${esc(j.reply)}</p>` + j.proposals.map((p, k) => {
         const e = p.effect;
         const rows = e ? `<table><tr><th></th><th class="num">Sold</th><th class="num">Bought</th><th class="num">Grid in</th><th class="num">Net for the day</th></tr>
@@ -291,7 +299,7 @@ async function viewMember() {
         const k = b.dataset.ap;
         b.disabled = true;
         document.getElementById('ap' + k).innerHTML = '<span class="wait">applying…</span>';
-        const r2 = await fetch('api/approve', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ proposal: j.proposals[k].proposal }) });
+        const r2 = await fetch('api/approve', { method: 'POST', headers: { 'content-type': 'application/json', 'x-demo-password': demoPw() }, body: JSON.stringify({ proposal: j.proposals[k].proposal }) });
         const a = await r2.json();
         document.getElementById('ap' + k).innerHTML = r2.ok ? `<span class="ok">✓ applied</span>${a.explorer ? ` · <a href="${a.explorer}" target="_blank">on-chain approval</a>` : ''}` : `<span class="no">${esc(a.error)}</span>`;
       }));

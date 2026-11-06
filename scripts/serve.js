@@ -47,9 +47,29 @@ async function live(url) {
   return { ...view, live: { which, fetchedAt: c.raw.fetchedAt, sources: c.raw.sources } };
 }
 
+// Protection for anything that costs money (Claude calls) or changes state (approvals, on-chain txs):
+// a demo password (DEMO_PASSWORD) and rate limits per IP and overall.
+const LIMITS = { perIp10min: 5, perHour: 30, perDay: 150 };
+const hits = [];
+function guard(req) {
+  const pw = process.env.DEMO_PASSWORD;
+  if (!pw) return 'Agent is disabled on this server (no DEMO_PASSWORD set).';
+  if (req.headers['x-demo-password'] !== pw) return 'Demo password required.';
+  const now = Date.now();
+  while (hits.length && now - hits[0].t > 86400e3) hits.shift();
+  const ip = (req.headers['fly-client-ip'] ?? req.headers['x-forwarded-for'] ?? req.socket.remoteAddress ?? '').split(',')[0].trim();
+  if (hits.filter((h) => h.ip === ip && now - h.t < 600e3).length >= LIMITS.perIp10min) return 'Too many requests from you, try again in 10 minutes.';
+  if (hits.filter((h) => now - h.t < 3600e3).length >= LIMITS.perHour) return 'Hourly demo limit reached, try again later.';
+  if (hits.length >= LIMITS.perDay) return 'Daily demo limit reached.';
+  hits.push({ t: now, ip });
+  return null;
+}
+
 async function api(req, res, path) {
   if (req.method === 'GET' && path === '/api/live') return json(res, 200, await live(req.url));
   if (req.method !== 'POST') return json(res, 405, { error: 'POST only' });
+  const denied = guard(req);
+  if (denied) return json(res, denied.startsWith('Demo password') ? 401 : 429, { error: denied });
   const b = await body(req);
   if (path === '/api/agent') {
     if (!process.env.ANTHROPIC_API_KEY) return json(res, 503, { error: 'ANTHROPIC_API_KEY is not set on the server' });
