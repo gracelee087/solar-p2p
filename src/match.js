@@ -70,18 +70,23 @@ export function matchDay(day, world, opts = {}) {
     const rd = Object.fromEntries(cids.map((c) => [c, byC[c].reduce((a, x) => a + x.deficit, 0)]));
     const out = Object.fromEntries(cids.map((c) => [c, 0]));
     const inn = Object.fromEntries(cids.map((c) => [c, 0]));
+    const denied = [];
     for (const b of cids) {
       for (const sc of cids) {
         if (sc === b || rs[sc] === 0 || rd[b] === 0) continue;
         const ok = zonesMayShare(communities[sc].zone, communities[b].zone, ruleAt, zones);
-        if (!ok.ok) {
-          blocked.push({ slot: i, kind: 'zone', from: sc, to: b, wh: Math.min(rs[sc], rd[b]), reason: ok.reason });
-          continue;
-        }
+        if (!ok.ok) { denied.push({ sc, b, reason: ok.reason }); continue; }
         const wh = Math.min(rs[sc], rd[b]);
         rs[sc] -= wh; rd[b] -= wh; out[sc] += wh; inn[b] += wh;
         inter.push({ slot: i, t: s.t, from: b, to: sc, wh, priceMicroPerWh: price, amountMicro: wh * price }); // b's pool pays sc's pool
       }
+    }
+    // What the rules blocked: energy that WOULD have been shared after all allowed sharing, counted once
+    // (each remaining surplus and deficit can be used only once, like a real match).
+    const bs = { ...rs }, bd = { ...rd };
+    for (const { sc, b, reason } of denied) {
+      const wh = Math.min(bs[sc], bd[b]);
+      if (wh > 0) { bs[sc] -= wh; bd[b] -= wh; blocked.push({ slot: i, kind: 'zone', from: sc, to: b, wh, reason }); }
     }
     for (const c of cids) {
       const xs = byC[c];

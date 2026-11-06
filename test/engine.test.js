@@ -83,3 +83,15 @@ test('transfer order: no pool ever goes below zero when executed in sequence fro
     }
   }
 });
+
+test('blocked energy is counted once: no slot blocks more than the remaining surplus or deficit', () => {
+  for (let i = 0; i < day.slots.length; i++) {
+    const blocked = m2026.blocked.filter((b) => b.kind === 'zone' && b.slot === i);
+    const byTo = {}, byFrom = {};
+    for (const b of blocked) { byTo[b.to] = (byTo[b.to] ?? 0) + b.wh; byFrom[b.from] = (byFrom[b.from] ?? 0) + b.wh; }
+    for (const [c, wh] of Object.entries(byTo)) {
+      const left = m2026.grid.filter((g) => g.slot === i && g.side === 'import' && MEMBERS.find((m) => m.id === g.memberId).community === c && MEMBERS.find((m) => m.id === g.memberId).kind !== 'large').reduce((a, g) => a + g.wh, 0);
+      assert.ok(wh <= left, `slot ${i} ${c}: blocked ${wh} > remaining demand ${left}`);
+    }
+  }
+});

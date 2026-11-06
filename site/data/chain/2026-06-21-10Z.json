@@ -1,0 +1,239 @@
+{
+ "status": "settled",
+ "day": "2026-06-21",
+ "hourStartMs": 1782036000000,
+ "rules": "slot date",
+ "root": "d4d71e91b5efc0d235eb683799930f0e952163dc154d9586d5a11665d501347c",
+ "memo": "solar-share:v1|2026-06-21T10:00:00.000Z|root=d4d71e91b5efc0d235eb683799930f0e952163dc154d9586d5a11665d501347c|lines=17",
+ "lines": [
+  {
+   "kind": "member",
+   "id": "alt-01",
+   "community": "alt",
+   "whBought": 0,
+   "whSold": 943,
+   "netMicro": 113160
+  },
+  {
+   "kind": "member",
+   "id": "alt-02",
+   "community": "alt",
+   "whBought": 345,
+   "whSold": 0,
+   "netMicro": -41400
+  },
+  {
+   "kind": "member",
+   "id": "alt-03",
+   "community": "alt",
+   "whBought": 3735,
+   "whSold": 0,
+   "netMicro": -448200
+  },
+  {
+   "kind": "member",
+   "id": "alt-04",
+   "community": "alt",
+   "whBought": 0,
+   "whSold": 725,
+   "netMicro": 87000
+  },
+  {
+   "kind": "member",
+   "id": "alt-05",
+   "community": "alt",
+   "whBought": 0,
+   "whSold": 2412,
+   "netMicro": 289440
+  },
+  {
+   "kind": "member",
+   "id": "bie-01",
+   "community": "bie",
+   "whBought": 0,
+   "whSold": 2758,
+   "netMicro": 330960
+  },
+  {
+   "kind": "member",
+   "id": "bie-02",
+   "community": "bie",
+   "whBought": 542,
+   "whSold": 0,
+   "netMicro": -65040
+  },
+  {
+   "kind": "member",
+   "id": "bie-03",
+   "community": "bie",
+   "whBought": 49,
+   "whSold": 0,
+   "netMicro": -5880
+  },
+  {
+   "kind": "member",
+   "id": "bie-04",
+   "community": "bie",
+   "whBought": 774,
+   "whSold": 0,
+   "netMicro": -92880
+  },
+  {
+   "kind": "member",
+   "id": "bie-05",
+   "community": "bie",
+   "whBought": 1393,
+   "whSold": 0,
+   "netMicro": -167160
+  },
+  {
+   "kind": "member",
+   "id": "neu-01",
+   "community": "neu",
+   "whBought": 0,
+   "whSold": 612,
+   "netMicro": 73440
+  },
+  {
+   "kind": "member",
+   "id": "neu-02",
+   "community": "neu",
+   "whBought": 297,
+   "whSold": 0,
+   "netMicro": -35640
+  },
+  {
+   "kind": "member",
+   "id": "neu-03",
+   "community": "neu",
+   "whBought": 1681,
+   "whSold": 0,
+   "netMicro": -201720
+  },
+  {
+   "kind": "member",
+   "id": "neu-04",
+   "community": "neu",
+   "whBought": 0,
+   "whSold": 1366,
+   "netMicro": 163920
+  },
+  {
+   "kind": "pool",
+   "id": "pool:alt",
+   "fromMembersMicro": 0,
+   "interMicro": 0
+  },
+  {
+   "kind": "pool",
+   "id": "pool:bie",
+   "fromMembersMicro": 0,
+   "interMicro": 0
+  },
+  {
+   "kind": "pool",
+   "id": "pool:neu",
+   "fromMembersMicro": 0,
+   "interMicro": 0
+  }
+ ],
+ "transfers": [
+  {
+   "from": "alt-02",
+   "to": "pool:alt",
+   "amountMicro": 41400,
+   "type": "member"
+  },
+  {
+   "from": "alt-03",
+   "to": "pool:alt",
+   "amountMicro": 448200,
+   "type": "member"
+  },
+  {
+   "from": "bie-02",
+   "to": "pool:bie",
+   "amountMicro": 65040,
+   "type": "member"
+  },
+  {
+   "from": "bie-03",
+   "to": "pool:bie",
+   "amountMicro": 5880,
+   "type": "member"
+  },
+  {
+   "from": "bie-04",
+   "to": "pool:bie",
+   "amountMicro": 92880,
+   "type": "member"
+  },
+  {
+   "from": "bie-05",
+   "to": "pool:bie",
+   "amountMicro": 167160,
+   "type": "member"
+  },
+  {
+   "from": "neu-02",
+   "to": "pool:neu",
+   "amountMicro": 35640,
+   "type": "member"
+  },
+  {
+   "from": "neu-03",
+   "to": "pool:neu",
+   "amountMicro": 201720,
+   "type": "member"
+  },
+  {
+   "from": "pool:alt",
+   "to": "alt-01",
+   "amountMicro": 113160,
+   "type": "member"
+  },
+  {
+   "from": "pool:alt",
+   "to": "alt-04",
+   "amountMicro": 87000,
+   "type": "member"
+  },
+  {
+   "from": "pool:alt",
+   "to": "alt-05",
+   "amountMicro": 289440,
+   "type": "member"
+  },
+  {
+   "from": "pool:bie",
+   "to": "bie-01",
+   "amountMicro": 330960,
+   "type": "member"
+  },
+  {
+   "from": "pool:neu",
+   "to": "neu-01",
+   "amountMicro": 73440,
+   "type": "member"
+  },
+  {
+   "from": "pool:neu",
+   "to": "neu-04",
+   "amountMicro": 163920,
+   "type": "member"
+  }
+ ],
+ "gross": {
+  "payments": 56,
+  "micro": 2115840
+ },
+ "signatures": [
+  "5JHUtoirew68nGAGGAEA11YX3vPys9jwJxPBwwTfmtjBnAUL9xrckmPmyDZboPvafNDUjR7StfxGKVaiFPLsGBfm",
+  "3LyMQifSi6uUb73ADbVotSUMX73fsnHGXjvHsoiduzzgVy6tB7eJU91atPaf3WKkN7dCz6uPYTWCaABL89gkmbu1"
+ ],
+ "txFound": 2,
+ "txExpected": 2,
+ "ledgerMatchesChain": true,
+ "mismatches": [],
+ "verifiedAt": "2026-11-06T19:18:12.249Z"
+}

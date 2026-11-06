@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>solar-share</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="#/">☀ solar-share</a>
+    <nav>
+      <a href="#/" data-nav="month">Month</a>
+      <a href="#/day" data-nav="day">Day</a>
+      <a href="#/member" data-nav="member">Member</a>
+      <a href="#/verify" data-nav="verify">Verify</a>
+    </nav>
+    <div class="rules" role="group" aria-label="Rules">
+      <button data-rules="2026">Law today</button>
+      <button data-rules="2028">Law from 2028-06-01</button>
+    </div>
+  </header>
+  <p class="banner">Simulation: fictional neighbourhood in Mainz &amp; Wiesbaden, <b>real</b> German day-ahead prices (SMARD) and <b>real</b> irradiance (Open-Meteo), June 2026. Payments on Solana <b>devnet</b> in a test-EUR token. Tariffs are assumptions.</p>
+  <main id="app"></main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
