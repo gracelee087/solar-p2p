@@ -14,7 +14,7 @@ if (existsSync('.env')) for (const line of readFileSync('.env', 'utf8').split(St
 }
 const root = join(process.cwd(), 'site');
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png' };
-const port = Number(process.argv[2] ?? 5173);
+const port = Number(process.argv[2] ?? process.env.PORT ?? 5173);
 const world = { members: MEMBERS, communities: COMMUNITIES, zones: ZONES, loadShapes: LOAD_SHAPES };
 const POLICIES = 'data/policies.json';
 const loadPolicies = () => (existsSync(POLICIES) ? JSON.parse(readFileSync(POLICIES)) : {});
