@@ -40,7 +40,19 @@ async function live(url) {
   const { dayView } = await import('../src/day-view.js');
   const day = berlinDate(Date.now() + (which === 'tomorrow' ? 86400e3 : 0));
   let c = liveCache.get(day);
-  if (!c || Date.now() - c.at > 15 * 60e3) { c = { at: Date.now(), raw: await fetchDay(day, { source: 'forecast' }) }; liveCache.set(day, c); }
+  if (!c || Date.now() - c.at > 15 * 60e3) {
+    let raw = null;
+    for (let i = 0; i < 3 && !raw; i++) {
+      try { raw = await fetchDay(day, { source: 'forecast' }); } catch (e) { if (i < 2) await new Promise((r) => setTimeout(r, 1500 * (i + 1))); }
+    }
+    // Shared hosting IPs can be rate-limited by the free weather API: fall back to the last good fetch,
+    // then to a snapshot fetched earlier (data/live/<day>.json). The view always shows when data was fetched.
+    if (!raw && c) raw = c.raw;
+    if (!raw && existsSync(`data/live/${day}.json`)) raw = JSON.parse(readFileSync(`data/live/${day}.json`));
+    if (!raw) throw new Error('live data temporarily unavailable (weather API rate limit), try again in a minute');
+    c = { at: Date.now(), raw };
+    liveCache.set(day, c);
+  }
   const rules = q.get('rules') === '2028' ? '2028' : '2026';
   const agent = q.get('agent') === '1';
   const view = dayView(c.raw, world, rules === '2028' ? { ruleDateMs: ADJACENT_START } : {}, agent, rules + (agent ? '-agent' : ''));
