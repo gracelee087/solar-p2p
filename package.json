@@ -1,0 +1,11 @@
+{
+  "name": "solar-share",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "fetch": "node scripts/fetch-day.js",
+    "sim": "node scripts/run-day.js",
+    "test": "node --test"
+  }
+}

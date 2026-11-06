@@ -1,0 +1,495 @@
+{
+ "day": "2026-06-21",
+ "timezone": "Europe/Berlin",
+ "location": {
+  "lat": 50,
+  "lon": 8.26
+ },
+ "sources": {
+  "price": "SMARD.de (Bundesnetzagentur), day-ahead DE-LU, series 4169, quarter-hour, EUR/MWh",
+  "irradiance": "Open-Meteo historical-forecast-api minutely_15 shortwave_radiation (GHI), W/m2"
+ },
+ "fetchedAt": "2026-11-06T18:27:18.691Z",
+ "slots": [
+  {
+   "t": 1781992800000,
+   "priceEurMWh": 148.17,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1781993700000,
+   "priceEurMWh": 138.76,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1781994600000,
+   "priceEurMWh": 134.02,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1781995500000,
+   "priceEurMWh": 130.71,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1781996400000,
+   "priceEurMWh": 131.6,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1781997300000,
+   "priceEurMWh": 129.38,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1781998200000,
+   "priceEurMWh": 127.65,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1781999100000,
+   "priceEurMWh": 125.63,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1782000000000,
+   "priceEurMWh": 129.18,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1782000900000,
+   "priceEurMWh": 125.92,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1782001800000,
+   "priceEurMWh": 125.65,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1782002700000,
+   "priceEurMWh": 124.91,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1782003600000,
+   "priceEurMWh": 124.99,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1782004500000,
+   "priceEurMWh": 124.95,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1782005400000,
+   "priceEurMWh": 123.94,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1782006300000,
+   "priceEurMWh": 122.8,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1782007200000,
+   "priceEurMWh": 122.79,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1782008100000,
+   "priceEurMWh": 122.51,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1782009000000,
+   "priceEurMWh": 122.18,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1782009900000,
+   "priceEurMWh": 122.25,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1782010800000,
+   "priceEurMWh": 124.34,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1782011700000,
+   "priceEurMWh": 120.23,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1782012600000,
+   "priceEurMWh": 119.66,
+   "ghiWm2": 1
+  },
+  {
+   "t": 1782013500000,
+   "priceEurMWh": 114.12,
+   "ghiWm2": 8
+  },
+  {
+   "t": 1782014400000,
+   "priceEurMWh": 120.01,
+   "ghiWm2": 15
+  },
+  {
+   "t": 1782015300000,
+   "priceEurMWh": 113.45,
+   "ghiWm2": 24
+  },
+  {
+   "t": 1782016200000,
+   "priceEurMWh": 110.18,
+   "ghiWm2": 21
+  },
+  {
+   "t": 1782017100000,
+   "priceEurMWh": 104.76,
+   "ghiWm2": 15
+  },
+  {
+   "t": 1782018000000,
+   "priceEurMWh": 118.1,
+   "ghiWm2": 25
+  },
+  {
+   "t": 1782018900000,
+   "priceEurMWh": 110.11,
+   "ghiWm2": 27
+  },
+  {
+   "t": 1782019800000,
+   "priceEurMWh": 98.3,
+   "ghiWm2": 73
+  },
+  {
+   "t": 1782020700000,
+   "priceEurMWh": 82.91,
+   "ghiWm2": 115
+  },
+  {
+   "t": 1782021600000,
+   "priceEurMWh": 109.94,
+   "ghiWm2": 91
+  },
+  {
+   "t": 1782022500000,
+   "priceEurMWh": 84.68,
+   "ghiWm2": 178
+  },
+  {
+   "t": 1782023400000,
+   "priceEurMWh": 60,
+   "ghiWm2": 193
+  },
+  {
+   "t": 1782024300000,
+   "priceEurMWh": 28.64,
+   "ghiWm2": 260
+  },
+  {
+   "t": 1782025200000,
+   "priceEurMWh": 53.06,
+   "ghiWm2": 341
+  },
+  {
+   "t": 1782026100000,
+   "priceEurMWh": 35.25,
+   "ghiWm2": 332
+  },
+  {
+   "t": 1782027000000,
+   "priceEurMWh": 12.54,
+   "ghiWm2": 364
+  },
+  {
+   "t": 1782027900000,
+   "priceEurMWh": 3.08,
+   "ghiWm2": 455
+  },
+  {
+   "t": 1782028800000,
+   "priceEurMWh": 4.1,
+   "ghiWm2": 511
+  },
+  {
+   "t": 1782029700000,
+   "priceEurMWh": 1.31,
+   "ghiWm2": 476
+  },
+  {
+   "t": 1782030600000,
+   "priceEurMWh": 0.04,
+   "ghiWm2": 530
+  },
+  {
+   "t": 1782031500000,
+   "priceEurMWh": 0,
+   "ghiWm2": 629
+  },
+  {
+   "t": 1782032400000,
+   "priceEurMWh": 0,
+   "ghiWm2": 671
+  },
+  {
+   "t": 1782033300000,
+   "priceEurMWh": 0,
+   "ghiWm2": 708
+  },
+  {
+   "t": 1782034200000,
+   "priceEurMWh": 0,
+   "ghiWm2": 736
+  },
+  {
+   "t": 1782035100000,
+   "priceEurMWh": -0.01,
+   "ghiWm2": 760
+  },
+  {
+   "t": 1782036000000,
+   "priceEurMWh": 0,
+   "ghiWm2": 780
+  },
+  {
+   "t": 1782036900000,
+   "priceEurMWh": -0.01,
+   "ghiWm2": 791
+  },
+  {
+   "t": 1782037800000,
+   "priceEurMWh": -0.01,
+   "ghiWm2": 807
+  },
+  {
+   "t": 1782038700000,
+   "priceEurMWh": -0.01,
+   "ghiWm2": 825
+  },
+  {
+   "t": 1782039600000,
+   "priceEurMWh": -0.01,
+   "ghiWm2": 835
+  },
+  {
+   "t": 1782040500000,
+   "priceEurMWh": -0.01,
+   "ghiWm2": 841
+  },
+  {
+   "t": 1782041400000,
+   "priceEurMWh": -0.01,
+   "ghiWm2": 844
+  },
+  {
+   "t": 1782042300000,
+   "priceEurMWh": -0.01,
+   "ghiWm2": 842
+  },
+  {
+   "t": 1782043200000,
+   "priceEurMWh": -0.01,
+   "ghiWm2": 838
+  },
+  {
+   "t": 1782044100000,
+   "priceEurMWh": -0.01,
+   "ghiWm2": 837
+  },
+  {
+   "t": 1782045000000,
+   "priceEurMWh": 0,
+   "ghiWm2": 830
+  },
+  {
+   "t": 1782045900000,
+   "priceEurMWh": 0,
+   "ghiWm2": 820
+  },
+  {
+   "t": 1782046800000,
+   "priceEurMWh": 0,
+   "ghiWm2": 807
+  },
+  {
+   "t": 1782047700000,
+   "priceEurMWh": 0,
+   "ghiWm2": 791
+  },
+  {
+   "t": 1782048600000,
+   "priceEurMWh": 0,
+   "ghiWm2": 773
+  },
+  {
+   "t": 1782049500000,
+   "priceEurMWh": 0.03,
+   "ghiWm2": 750
+  },
+  {
+   "t": 1782050400000,
+   "priceEurMWh": 0.11,
+   "ghiWm2": 726
+  },
+  {
+   "t": 1782051300000,
+   "priceEurMWh": 2.05,
+   "ghiWm2": 664
+  },
+  {
+   "t": 1782052200000,
+   "priceEurMWh": 6.85,
+   "ghiWm2": 590
+  },
+  {
+   "t": 1782053100000,
+   "priceEurMWh": 42.04,
+   "ghiWm2": 618
+  },
+  {
+   "t": 1782054000000,
+   "priceEurMWh": 20.05,
+   "ghiWm2": 434
+  },
+  {
+   "t": 1782054900000,
+   "priceEurMWh": 71.81,
+   "ghiWm2": 423
+  },
+  {
+   "t": 1782055800000,
+   "priceEurMWh": 95.84,
+   "ghiWm2": 366
+  },
+  {
+   "t": 1782056700000,
+   "priceEurMWh": 123.18,
+   "ghiWm2": 369
+  },
+  {
+   "t": 1782057600000,
+   "priceEurMWh": 100.07,
+   "ghiWm2": 163
+  },
+  {
+   "t": 1782058500000,
+   "priceEurMWh": 111.62,
+   "ghiWm2": 135
+  },
+  {
+   "t": 1782059400000,
+   "priceEurMWh": 117.94,
+   "ghiWm2": 71
+  },
+  {
+   "t": 1782060300000,
+   "priceEurMWh": 132.83,
+   "ghiWm2": 132
+  },
+  {
+   "t": 1782061200000,
+   "priceEurMWh": 118.38,
+   "ghiWm2": 237
+  },
+  {
+   "t": 1782062100000,
+   "priceEurMWh": 134.57,
+   "ghiWm2": 236
+  },
+  {
+   "t": 1782063000000,
+   "priceEurMWh": 140.02,
+   "ghiWm2": 194
+  },
+  {
+   "t": 1782063900000,
+   "priceEurMWh": 142.71,
+   "ghiWm2": 130
+  },
+  {
+   "t": 1782064800000,
+   "priceEurMWh": 142.87,
+   "ghiWm2": 88
+  },
+  {
+   "t": 1782065700000,
+   "priceEurMWh": 149.57,
+   "ghiWm2": 41
+  },
+  {
+   "t": 1782066600000,
+   "priceEurMWh": 153.13,
+   "ghiWm2": 25
+  },
+  {
+   "t": 1782067500000,
+   "priceEurMWh": 154.44,
+   "ghiWm2": 18
+  },
+  {
+   "t": 1782068400000,
+   "priceEurMWh": 152.23,
+   "ghiWm2": 10
+  },
+  {
+   "t": 1782069300000,
+   "priceEurMWh": 150.92,
+   "ghiWm2": 6
+  },
+  {
+   "t": 1782070200000,
+   "priceEurMWh": 150,
+   "ghiWm2": 3
+  },
+  {
+   "t": 1782071100000,
+   "priceEurMWh": 147.91,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1782072000000,
+   "priceEurMWh": 150.27,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1782072900000,
+   "priceEurMWh": 149.64,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1782073800000,
+   "priceEurMWh": 145.73,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1782074700000,
+   "priceEurMWh": 138.76,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1782075600000,
+   "priceEurMWh": 144.46,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1782076500000,
+   "priceEurMWh": 136.22,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1782077400000,
+   "priceEurMWh": 132.61,
+   "ghiWm2": 0
+  },
+  {
+   "t": 1782078300000,
+   "priceEurMWh": 122.68,
+   "ghiWm2": 0
+  }
+ ]
+}
