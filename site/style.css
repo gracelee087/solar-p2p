@@ -58,3 +58,27 @@ select { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid 
 .bar span { display: block; height: 100%; }
 .check { display: flex; gap: 8px; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--line); }
 .check:last-child { border-bottom: 0; }
+
+/* story */
+.hero { margin-bottom: 14px; background: linear-gradient(120deg, color-mix(in srgb, var(--sun) 14%, var(--card)), var(--card) 60%); }
+.hero h1 { font-size: 26px; line-height: 1.25; margin: 6px 0 0; max-width: 900px; }
+.kicker { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.story { display: grid; grid-template-columns: 44px 1fr; gap: 12px; margin-bottom: 14px; animation: rise .5s ease both; }
+.sn { width: 34px; height: 34px; border-radius: 50%; background: var(--ink); color: var(--card); display: grid; place-items: center; font-weight: 700; }
+.claim { font-size: 16px; font-weight: 600; margin: 0 0 10px; }
+.lab { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 2px; }
+.ev ul { margin: 0 0 10px; padding-left: 18px; } .ev li { margin: 3px 0; }
+.ev a, .bg a { color: var(--cross); }
+.bg p { margin: 0; color: var(--muted); font-size: 14px; }
+.pipe { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0 12px; }
+.step { border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; background: var(--bg); animation: rise .5s ease both; }
+.step b { display: block; font-size: 13px; } .step span { font-size: 11px; color: var(--muted); }
+.arr { width: 18px; height: 2px; background: repeating-linear-gradient(90deg, var(--cross) 0 4px, transparent 4px 8px); background-size: 16px 2px; animation: slide 1s linear infinite; }
+@keyframes slide { to { background-position: 16px 0; } }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+/* day: moving energy */
+.flowdash { animation: dash 1s linear infinite; }
+@keyframes dash { to { stroke-dashoffset: -22; } }
+.pulse { animation: pulse 1.6s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes pulse { from { opacity: .7; transform: scale(1); } to { opacity: 0; transform: scale(1.35); } }
+@media (prefers-reduced-motion: reduce) { .flowdash, .pulse, .arr, .story, .step { animation: none; } }

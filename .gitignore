@@ -3,3 +3,4 @@ node_modules/
 *.keypair.json
 keys/
 HANDOFF.md
+demo-video/

@@ -24,6 +24,29 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 const kpi = (v, l, cls = '') => `<div class="card kpi ${cls}"><div class="v">${v}</div><div class="l">${l}</div></div>`;
 const explorer = (sig) => `https://explorer.solana.com/tx/${sig}?cluster=devnet`;
 
+// Keep CSS animations continuous across re-renders (the day player re-renders every 180 ms).
+const phase = (period = 1) => `-${((performance.now() / 1000) % period).toFixed(3)}s`;
+// Count numbers up from 0 once when a page opens.
+function countUp(root = $app) {
+  for (const el of root.querySelectorAll('.kpi .v, [data-count]')) {
+    if (el.children.length) continue;
+    const text = el.textContent;
+    const nums = [...text.matchAll(/\d[\d,]*(\.\d+)?/g)];
+    if (!nums.length) continue;
+    const t0 = performance.now(), T = 900;
+    const step = (now) => {
+      const f = Math.min(1, (now - t0) / T), e = 1 - (1 - f) ** 3;
+      let i = 0;
+      el.textContent = text.replace(/\d[\d,]*(\.\d+)?/g, (m) => {
+        const dec = (m.split('.')[1] ?? '').length, v = Number(m.replace(/,/g, '')) * e;
+        i++; return v.toLocaleString('en', { minimumFractionDigits: dec, maximumFractionDigits: dec, useGrouping: m.includes(',') });
+      });
+      if (f < 1) requestAnimationFrame(step); else el.textContent = text;
+    };
+    requestAnimationFrame(step);
+  }
+}
+
 // ---------- small SVG chart ----------
 function chart(series, { h = 220, cursor = null, right = null, onPick } = {}) {
   const W = 960, H = h, pl = 44, pr = right ? 50 : 10, pt = 10, pb = 22;
@@ -89,12 +112,14 @@ function flowMap(slot) {
     const dx = P[b].x - P[a].x, dy = P[b].y - P[a].y, L = Math.hypot(dx, dy), ox = (-dy / L) * 8, oy = (dx / L) * 8;
     const x1 = P[a].x + (dx / L) * 34 + ox, y1 = P[a].y + (dy / L) * 34 + oy, x2 = P[b].x - (dx / L) * 38 + ox, y2 = P[b].y - (dy / L) * 38 + oy;
     return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${w}" ${marker === 'ab' ? 'stroke-dasharray="6 5"' : ''} marker-end="url(#${marker})"/>
+      ${marker === 'ah' ? `<line class="flowdash" style="animation-delay:${phase()}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#fff" stroke-opacity=".8" stroke-width="${Math.max(1.5, w / 2.5)}" stroke-dasharray="2 9" stroke-linecap="round"/>` : ''}
       <text x="${(x1 + x2) / 2 + ox * 3.5}" y="${(y1 + y2) / 2 + oy * 3.5 + 4}" text-anchor="middle" style="fill:${color};font-weight:600">${label}</text>`;
   };
   for (const [k, wh] of Object.entries(slot.flows)) { const [a, b] = k.split('>'); s += arrow(a, b, wh, 'var(--cross)', 'ah', `${kwh(wh * 4)} kW`); }
   for (const [k, wh] of Object.entries(slot.blockedFlows)) { const [a, b] = k.split('>'); s += arrow(a, b, wh, 'var(--block)', 'ab', `blocked ${kwh(wh * 4)} kW`); }
   for (const [k, p] of Object.entries(P)) {
     const inside = slot.intra[k] ?? 0;
+    if (inside) s += `<circle class="pulse" style="animation-delay:${phase(1.6)}" cx="${p.x}" cy="${p.y}" r="30" fill="none" stroke="var(--share)" stroke-width="2"/>`;
     s += `<circle cx="${p.x}" cy="${p.y}" r="30" fill="var(--card)" stroke="${inside ? 'var(--share)' : 'var(--line)'}" stroke-width="${inside ? 3 : 1.5}"/>
       <text x="${p.x}" y="${p.y - 2}" text-anchor="middle" style="fill:var(--ink);font-weight:700">${esc(cs[k].name.split(' ')[0])}</text>
       <text x="${p.x}" y="${p.y + 13}" text-anchor="middle" style="fill:var(--share)">${inside ? kwh(inside * 4) + ' kW' : ''}</text>`;
@@ -139,6 +164,7 @@ async function viewMonth() {
         ${rows.map(([l, v]) => `<tr><td>${l}</td><td class="num">${eur(v.micro)}</td><td class="num">${kwh(v.gridWh)} kWh</td><td class="num">${kwh(v.localWh)} kWh</td><td><div class="bar" style="height:10px"><span style="width:${(100 * v.micro) / max}%;background:${l === 'Flex agent' ? 'var(--share)' : 'var(--grid)'}"></span></div></td></tr>`).join('')}
         </table><p class="sub" style="margin:10px 0 0"><b>Agent vs no shifting: −${eur(b.none.micro - b.agent.micro)} (${((100 * (b.none.micro - b.agent.micro)) / b.none.micro).toFixed(1)}%)</b> · vs simple rule: −${eur(b.rule.micro - b.agent.micro)}. Turn the agent on (top right) to see where it moves load.</p></div>`;
     })()}`;
+  countUp();
 }
 
 async function viewDay() {
@@ -218,6 +244,9 @@ async function viewDay() {
     render();
   };
   bindPick(document.getElementById('ch'), n, (i) => { state.slot = i; render(); });
+  const key = `${location.hash}|${state.rules}|${state.agent}`;
+  if (state.counted !== key) { state.counted = key; countUp(); }
+  if (state.autoplay) { state.autoplay = false; if (!state.playing) { state.slot = 20; document.getElementById('play').click(); } }
 }
 
 async function viewMember() {
@@ -379,13 +408,116 @@ async function viewVerify(file) {
   set('c5', (await buildTree(tampered)).root !== rec.root);
 }
 
+// ---------- story: problem → pitch → solution → what I built → … each with claim, evidence, background ----------
+const LAW = 'https://www.gesetze-im-internet.de/enwg_2005/__42c.html';
+const BNETZA = 'https://www.bundesnetzagentur.de/DE/Vportal/Energie/Energy_Sharing/start.html';
+const SETTLE_TX = [ // measured with getTransaction (devnet), 2026-06-21 13:00 hour
+  { sig: '5dr7ZaLupsr7FBqvYFniDyt6fkXJwoPcf1n8J61mPRTaz9Kv963zsxQvUDLv1pWShCkhh7KChungmZsbxU1bqEQU', fee: 5000, sigs: 1 },
+  { sig: '23WAfaZuYJZHyGtjLd6b6PDAvnruvDoSaQw9Hk6xK8wKEhZiAC7QyY4jSEwhM8skcJoBNSHTfkzM7Y2K1dYYMP39', fee: 20000, sigs: 4 },
+];
+async function viewStory() {
+  const d21 = await getJSON('data/days/2026-06-21-2026.json');
+  const tot = (r, f) => month.reduce((a, d) => a + d[r][f], 0);
+  const fb = world.flexBacktest;
+  const pct = (r) => ((100 * (fb[r].none.micro - fb[r].agent.micro)) / fb[r].none.micro).toFixed(1);
+  const fee = SETTLE_TX.reduce((a, t) => a + t.fee, 0);
+  const jonas = world.devnet?.members['alt-02'];
+  const ext = (href, t) => `<a href="${href}" target="_blank" rel="noopener">${t} ↗</a>`;
+  const inapp = (href, t) => `<a href="${href}">${t} →</a>`;
+  const N = (v) => `<b data-count>${v}</b>`;
+  const sec = (n, title, claim, evidence, background, extra = '') => `<section class="card story">
+    <div class="sn">${n}</div><div><h2>${title}</h2><p class="claim">${claim}</p>${extra}
+    <div class="ev"><div class="lab">Evidence</div><ul>${evidence.map((e) => `<li>${e}</li>`).join('')}</ul></div>
+    <div class="bg"><div class="lab">Background</div><p>${background}</p></div></div></section>`;
+  const steps = [['Real data', 'SMARD prices + Open-Meteo sun, 15 min'], ['Match', 'roof → community → neighbour → grid'], ['§42c rules', 'who, which zone, which date'], ['Net', 'hourly, multilateral'], ['Merkle root', 'one hash per hour'], ['Solana', 'SPL transfers + memo'], ['Verify', 'in any browser']];
+  $app.innerHTML = `
+    <div class="hero card"><div class="kicker">Germany's new energy-sharing law (§42c EnWG), in force since 1 June 2026</div>
+      <h1>SolarP2P is the clearing layer for neighbourhood solar: matched every 15 minutes, settled hourly on Solana, checkable by anyone.</h1>
+      <div class="grid kpis" style="margin:14px 0 0">
+        ${kpi(d21.kpi.grossPayments + ' → ' + d21.kpi.transfers, 'payments → transfers, one day (21 June)')}
+        ${kpi(kwh(tot('2026', 'blockedWh')) + ' kWh', 'blocked by today\'s zone rule (June)', 'bad')}
+        ${kpi(kwh(tot('2028', 'sharedWh')) + ' kWh', 'shared under 2028 rules (June)', 'good')}
+        ${kpi(fee.toLocaleString('en') + ' lamports', 'Solana fees for one settled hour')}
+      </div></div>
+
+    ${sec(1, 'Problem', 'The new law makes sharing solar with neighbours legal, but every sunny day becomes hundreds of tiny payments, and until 2028 sharing stops at grid-zone borders.', [
+      `§42c(4) EnWG: sharing <i>"ab dem 1. Juni 2026 innerhalb des Bilanzierungsgebietes eines Elektrizitätsverteilernetzbetreibers"</i>; a directly adjacent area in the same control zone only from 1 June 2028. ${ext(LAW, 'law text')}`,
+      `§42c(1) No. 6–7: consumption and generation are metered every quarter-hour (<i>"viertelstündliche registrierende Leistungsmessung"</i>). ${ext(LAW, 'law text')}`,
+      `Measured here: one 15-member neighbourhood, 21 June → ${N(d21.kpi.grossPayments)} quarter-hour payments. ${inapp('#/day/2026-06-21', 'Day')}`,
+      `Measured here: June 2026 → ${N(kwh(tot('2026', 'blockedWh')))} kWh could have been shared but was blocked by the zone rule. ${inapp('#/month', 'Month')}`,
+    ], `Shared energy still pays <i>"die üblichen Zahlungen für Netzentgelte und Umlagen"</i> (${ext(BNETZA, 'Bundesnetzagentur')}), so the saving per kWh is small. Our conclusion (reasoning, not a measurement): settlement must be cheap, automatic and trusted, or the overhead eats the saving.`)}
+
+    ${sec(2, 'One-line pitch', 'SolarP2P is the clearing layer a community or its local utility runs: neighbours\' solar matched every 15 minutes under §42c, settled hourly on Solana, and checkable by anyone.', [
+      'Sections 1 and 3 give the reason for each part of this sentence.',
+    ], 'Built solo for the MLH Solana Hackathon, AI track.')}
+
+    ${sec(3, 'Solution', 'Match every 15 minutes, settle every hour, prove every payment.', [
+      `15 minutes is the law's own metering interval (§42c(1) No. 6–7). ${ext(LAW, 'law text')}`,
+      `Hourly multilateral netting: ${N(d21.kpi.grossPayments)} payments → ${N(d21.kpi.transfers)} transfers on 21 June. ${inapp('#/day/2026-06-21', 'Day')}`,
+      'Engine tests (9, <span class="mono">node --test</span>): energy balance, settlement reproduces every member\'s position, pools never go negative, blocked energy counted once.',
+    ], 'Order of supply: own roof → own community → a neighbouring community only where §42c allows → grid. The local price sits between the feed-in tariff and the grid price minus fees. These tariffs are assumptions and are shown in the banner.')}
+
+    ${sec(4, 'What I built', 'A working clearing system on real German market data, with two AI agents and on-chain settlement.', [
+      `Real data: SMARD day-ahead quarter-hour prices (series 4169) and Open-Meteo irradiance for all ${month.length} days of June 2026, plus live today and tomorrow. ${inapp('#/live/tomorrow', 'Live')}`,
+      `§42c rule engine: member types and grid zones, switchable between today's rules and the 2028 rules. ${inapp('#/month', 'Month')}`,
+      `Settlement on Solana devnet in a test-euro SPL token, with a Merkle root of each hour's statement in the memo. ${inapp('#/verify/2026-06-21-11Z.json', 'Verify')}`,
+      `Member agent (Claude): turns "Never sell my solar under 20 cents" into a policy, simulates it on real data, and changes nothing until the member approves. ${inapp('#/member/alt-01', 'Member')}`,
+      `Flex agent: moves 30% of the school's, sports hall's and supermarket's load into hours with spare neighbour solar. June backtest: −${N(pct('2026'))}% energy cost under today's rules, −${N(pct('2028'))}% under the 2028 rules, after grid fees. ${inapp('#/month', 'Month')}`,
+    ], 'Members and their loads are fictional; prices and sunshine are real. Live mode refreshes from the public APIs every 15 minutes.')}
+
+    ${sec(5, 'How it works', 'Every hour produces a statement that anyone can reproduce and check against the chain.', [
+      `The Verify page fetches the hour's transactions from Solana devnet, recomputes the Merkle root from the statement, checks the memo, and matches every token movement to the netted transfers, to the micro-euro. ${inapp('#/verify/2026-06-21-11Z.json', 'Verify 13:00')}`,
+      'Tamper test on the same page: change one line by €0.000001 and the root no longer matches.',
+      `Each member can check only their own line with a Merkle proof, without seeing other members' lines. ${inapp('#/member/alt-01', 'Member → check')}`,
+    ], 'Stack: Node.js engine in integer Wh and micro-euro (largest-remainder rounding, multilateral netting); SHA-256 Merkle tree with separate leaf and node prefixes; @solana/web3.js, SPL Token, SPL Memo; Claude (claude-opus-5-5) with strict tool schemas; static web app, hosted on Render.',
+      `<div class="pipe">${steps.map(([t, d], i) => `<div class="step" style="animation-delay:${i * 0.12}s"><b>${t}</b><span>${d}</span></div>`).join('<i class="arr"></i>')}</div>`)}
+
+    ${sec(6, 'Why a blockchain', 'Several parties who do not fully trust one operator need one shared record and spending limits that nobody can override.', [
+      `Parties: members, producers, three communities and the operator. Each hour's statement root is public; a member checks their own line without asking anyone. ${inapp('#/member/alt-01', 'Member → check')}`,
+      `The payment is the proof: every settlement transaction carries the root in its memo. ${ext(explorer(SETTLE_TX[0].sig), 'transaction')}`,
+      `Limits enforced by the chain: each member's token account approves the operator only up to a limit (SPL delegate). Jonas lowered his to €15 through the agent. ${jonas ? ext(`https://explorer.solana.com/address/${jonas.tokenAccount}?cluster=devnet`, 'Jonas\'s token account') : ''}`,
+    ], 'Without a shared ledger, members must trust the operator\'s database and statements. Honest scope: matching and netting run off-chain (fast and private); only payments and one hash per hour go on-chain. Meter data never does.')}
+
+    ${sec(7, 'Why Solana', `The law creates many small payments; on Solana one settled hour cost ${fee.toLocaleString('en')} lamports (0.000025 SOL) and needed no custom program.`, [
+      ...SETTLE_TX.map((t) => `Settlement transaction: ${t.fee.toLocaleString('en')} lamports (${t.sigs} signature${t.sigs > 1 ? 's' : ''}). ${ext(explorer(t.sig), 'explorer')}`),
+      'Built only from existing programs: SPL Token (transferChecked, approveChecked for limits) and SPL Memo. No custom on-chain code to audit.',
+      `Verification reads public RPC directly from the browser: no wallet, no account, no server of ours. ${inapp('#/verify/2026-06-21-11Z.json', 'Verify')}`,
+    ], 'Fees above were measured on devnet. Mainnet fees depend on priority fees and the SOL price; not measured here.')}
+
+    ${sec(8, 'Results (June 2026 replay)', 'Under the 2028 rules the same neighbourhood shares more than twice as much solar and imports less from the grid.', [
+      `All numbers are sums over the 30 replayed days; switch the rules in the header to see each column. ${inapp('#/month', 'Month')}`,
+    ], 'Real prices and sunshine; fictional members; tariffs are assumptions (banner). The flex agent uses the same series as forecast and actual, so forecast error is not modelled.', `<table><tr><th></th><th class="num">Today's rules</th><th class="num">2028 rules</th></tr>
+        ${[['Shared between neighbours', 'sharedWh'], ['Shared between communities', 'crossWh'], ['Blocked by zone rule', 'blockedWh'], ['Imported from grid', 'importWh']].map(([l, f]) => `<tr><td>${l}</td><td class="num">${kwh(tot('2026', f))} kWh</td><td class="num">${kwh(tot('2028', f))} kWh</td></tr>`).join('')}
+        <tr><td>Paid to local producers</td><td class="num">${eur(tot('2026', 'localMicro'))}</td><td class="num">${eur(tot('2028', 'localMicro'))}</td></tr></table>`)}
+
+    ${sec(9, 'Business (hypothesis)', 'Hypothesis: energy communities and the local utilities that run them pay a per-member fee for clearing, proof and agents.', [
+      'No customer interviews or pricing tests yet. This section is a hypothesis, not a result.',
+      `What the replay does show: ${eur(tot('2026', 'localMicro'))} in June went to local producers under today's rules, ${eur(tot('2028', 'localMicro'))} under the 2028 rules.`,
+      `Who may join is set by law: households, public bodies and micro, small and medium enterprises (§42c(1)–(2)). ${ext(LAW, 'law text')}`,
+    ], 'The engine is the same for one community or many; the 2028 rule change is what makes cross-community clearing matter.')}
+
+    ${sec(10, 'Honest limits', 'What this demo does not prove.', [
+      'Members, loads and tariffs are fictional or assumed.',
+      'Devnet only, test-euro token, demo keys held by the server.',
+      `Operator error during the build: two hours were settled twice on devnet (identical amounts). Shown openly on the Verify page; a chain-based duplicate check now prevents it. ${inapp('#/verify/2026-06-21-11Z.json', 'Verify')}`,
+    ], 'Every number on this page comes from this app\'s data, the law text, or a devnet transaction you can open.')}
+
+    ${sec(11, 'Next', 'From 1 June 2028 the law allows sharing with a directly adjacent grid area, which is where cross-community clearing starts to matter.', [
+      `§42c(4) No. 2 EnWG. ${ext(LAW, 'law text')}`,
+      'Plans, not done: real smart-meter data, a regulated euro stablecoin instead of the test token, and member-held keys.',
+    ], 'The 2028 switch in the header shows that future today.')}`;
+  countUp();
+}
+
 // ---------- router ----------
 async function render() {
   const [, page = '', arg] = location.hash.replace(/^#/, '').split('/');
-  document.querySelectorAll('[data-nav]').forEach((a) => a.classList.toggle('on', a.dataset.nav === (page || 'month')));
+  document.querySelectorAll('[data-nav]').forEach((a) => a.classList.toggle('on', a.dataset.nav === (page || 'story')));
   document.querySelectorAll('[data-rules]').forEach((b) => b.classList.toggle('on', b.dataset.rules === state.rules));
   const ab = document.getElementById('agentBtn'); ab.classList.toggle('on', state.agent); ab.textContent = `Flex agent: ${state.agent ? 'on' : 'off'}`;
   if (page === 'day' && arg && arg !== state.day) state.day = arg;
+  if (page === 'day' && state.autoKey !== state.day) { state.autoKey = state.day; state.autoplay = true; }
+  if (page !== 'day') state.autoKey = null;
   const wasLive = state.live;
   state.live = page === 'live' ? (arg === 'tomorrow' ? 'tomorrow' : 'today') : null;
   if (state.live && state.live !== wasLive) state.jumpToNow = state.live === 'today';
@@ -393,7 +525,8 @@ async function render() {
   if (page === 'day' || page === 'live') return viewDay();
   if (page === 'member') return viewMember();
   if (page === 'verify') return viewVerify(arg);
-  return viewMonth();
+  if (page === 'month') return viewMonth();
+  return viewStory();
 }
 document.querySelectorAll('[data-rules]').forEach((b) => (b.onclick = () => { state.rules = b.dataset.rules; render(); }));
 document.getElementById('agentBtn').onclick = () => { state.agent = !state.agent; render(); };
