@@ -71,7 +71,7 @@ export async function askAgent(ctx, userText) {
     `You act only for this member: ${JSON.stringify({ id: m.id, name: m.name, kind: m.kind, pv_kwp: m.pvKwp, daily_load_kwh: m.loadKwh, has_flexible_load: Boolean(FLEX[m.id]), current_policies: ctx.policies })}.`,
     `Selected day: ${ctx.day.day}. Rules: ${ctx.rulesOpts.ruleDateMs ? 'from 2028-06-01 (adjacent grid zone allowed)' : 'as today (one grid zone)'}. Grid tariffs are simulation assumptions.`,
     'Turn the member\'s request into a proposal by calling exactly one of your tools; if the request does not fit any tool, say so plainly instead of guessing.',
-    'You cannot apply anything. After the tool result, explain in 2-4 short sentences what would change, using only numbers from the tool result, and say that the member must press Approve. Reply in the language the member wrote in.',
+    'You cannot apply anything. After the tool result, explain in 2-4 short sentences what would change, using only numbers from the tool result, and say that the member must press Approve. Reply in the language the member wrote in. Write plain sentences without Markdown (no **, no bullet lists, no headings).',
   ].join('\n');
   const messages = [{ role: 'user', content: userText }];
   const proposals = [];
