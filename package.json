@@ -7,5 +7,9 @@
     "fetch": "node scripts/fetch-day.js",
     "sim": "node scripts/run-day.js",
     "test": "node --test"
+  },
+  "dependencies": {
+    "@solana/spl-token": "^0.4.15",
+    "@solana/web3.js": "^1.99.0"
   }
 }
