@@ -2,12 +2,14 @@ import { buildTree, proofFor, verifyProof } from './merkle.js';
 
 const RPC = 'https://api.devnet.solana.com';
 const $app = document.getElementById('app');
-const state = { rules: '2026', agent: false, day: '2026-06-21', slot: 48, member: 'alt-01', playing: null };
+const state = { rules: '2026', agent: false, day: '2026-06-21', slot: 48, member: 'alt-01', playing: null, live: null };
 const cache = new Map();
 const getJSON = async (u) => cache.get(u) ?? cache.set(u, await (await fetch(u)).json()).get(u);
 const world = await getJSON('data/world.json');
 const month = await getJSON('data/month.json');
-const dayData = (d = state.day, r = state.rules, a = state.agent) => getJSON(`data/days/${d}-${r}${a ? '-agent' : ''}.json`);
+const dayData = (d = state.day, r = state.rules, a = state.agent) => (state.live
+  ? getJSON(`api/live?which=${state.live}&rules=${r}&agent=${a ? 1 : 0}`)
+  : getJSON(`data/days/${d}-${r}${a ? '-agent' : ''}.json`));
 
 // ---------- formatting ----------
 const kwh = (wh) => (wh / 1000).toLocaleString('en', { maximumFractionDigits: wh < 10000 ? 1 : 0 });
@@ -140,8 +142,15 @@ async function viewMonth() {
 }
 
 async function viewDay() {
-  const D = await dayData();
+  let D;
+  try { D = await dayData(); } catch (e) { $app.innerHTML = `<p class="reason">Live data unavailable (${esc(e.message)}). Live mode needs the server (npm run serve).</p>`; return; }
   const n = D.slots.length;
+  if (state.live && state.jumpToNow) {
+    state.jumpToNow = false;
+    const now = Date.now();
+    const k = D.slots.findIndex((x) => x.t <= now && now < x.t + 900e3);
+    state.slot = k >= 0 ? k : 48;
+  }
   state.slot = Math.min(state.slot, n - 1);
   const s = D.slots[state.slot];
   const settled = await getJSON('data/chain/index.json');
@@ -153,11 +162,14 @@ async function viewDay() {
     for (const id of Object.keys(world.flex)) D.members[id].load.forEach((w, i) => { moved += Math.max(0, w - B.members[id].load[i]); });
   }
   $app.innerHTML = `
-    <h1>${dname(state.day)} 2026</h1>
-    <p class="sub">Real wholesale price and sunshine for this day; fictional members. Click the chart or press play.</p>
+    <h1>${state.live ? `Live · ${state.live === 'today' ? 'today' : 'tomorrow'}, ${dname(D.day)}` : `${dname(state.day)} 2026`}</h1>
+    <p class="sub">${state.live
+      ? `Real day-ahead prices already published for ${D.day} (SMARD) and the current solar forecast (Open-Meteo), fetched ${new Date(D.live.fetchedAt).toLocaleTimeString('en-GB', { ...tz, hour: '2-digit', minute: '2-digit' })}. ${state.live === 'tomorrow' ? 'This is a real plan made in advance: turn on the flex agent to see where it would move load tomorrow.' : 'The cursor starts at the current quarter-hour.'} Fictional members.`
+      : 'Real wholesale price and sunshine for this day; fictional members. Click the chart or press play.'}</p>
     <div class="controls card">
-      <label>Day</label><input id="dayr" type="range" min="0" max="${month.length - 1}" value="${idx}"/>
-      <b>${state.day}</b>
+      ${state.live
+        ? `<a class="btn" style="text-decoration:none;padding:7px 12px" href="#/live/today">${state.live === 'today' ? '● ' : ''}Today</a><a class="btn" style="text-decoration:none;padding:7px 12px" href="#/live/tomorrow">${state.live === 'tomorrow' ? '● ' : ''}Tomorrow</a>`
+        : `<label>Day</label><input id="dayr" type="range" min="0" max="${month.length - 1}" value="${idx}"/><b>${state.day}</b>`}
       <button class="btn" id="play">${state.playing ? '❚❚ Pause' : '▶ Play day'}</button>
       <label>Time</label><input id="slotr" type="range" min="0" max="${n - 1}" value="${state.slot}"/>
       <b>${hhmm(s.t)}</b>
@@ -190,14 +202,15 @@ async function viewDay() {
     <div class="card" style="margin-top:14px"><h2>Hourly settlement</h2><div class="tablewrap"><table>
       <tr><th>Hour</th><th class="num">15-min payments</th><th class="num">Transfers</th><th class="num">Volume</th><th>Merkle root</th><th>Solana devnet</th></tr>
       ${D.hours.map((h) => {
-        const onchain = !state.agent && settled.find((c) => c.day === state.day && c.hourStartMs === h.hourStartMs && c.rules === (state.rules === '2028' ? '2028-06-01' : 'slot date'));
+        const onchain = !state.agent && !state.live && settled.find((c) => c.day === state.day && c.hourStartMs === h.hourStartMs && c.rules === (state.rules === '2028' ? '2028-06-01' : 'slot date'));
         const vol = h.transfers.filter((t) => t.from.startsWith('pool:') === false).reduce((a, t) => a + t.amountMicro, 0);
         return `<tr><td>${hhmm(h.hourStartMs)}</td><td class="num">${h.gross.payments}</td><td class="num">${h.transfers.length}</td><td class="num">${eur(vol)}</td>
-          <td class="mono">${h.root.slice(0, 16)}…</td><td>${onchain ? `<a href="#/verify/${onchain.file}" class="ok">✓ settled · verify</a>` : '<span class="wait">simulated</span>'}</td></tr>`;
+          <td class="mono">${h.root.slice(0, 16)}…</td><td>${onchain ? `<a href="#/verify/${onchain.file}" class="ok">✓ settled · verify</a>` : `<span class="wait">${state.live ? 'planned' : 'simulated'}</span>`}</td></tr>`;
       }).join('')}
     </table></div></div>`;
   document.getElementById('slotr').oninput = (e) => { state.slot = +e.target.value; render(); };
-  document.getElementById('dayr').onchange = (e) => { location.hash = `#/day/${month[+e.target.value].day}`; };
+  const dayr = document.getElementById('dayr');
+  if (dayr) dayr.onchange = (e) => { location.hash = `#/day/${month[+e.target.value].day}`; };
   document.getElementById('play').onclick = () => {
     if (state.playing) { clearInterval(state.playing); state.playing = null; render(); return; }
     if (state.slot >= n - 1) state.slot = 0;
@@ -365,8 +378,11 @@ async function render() {
   document.querySelectorAll('[data-rules]').forEach((b) => b.classList.toggle('on', b.dataset.rules === state.rules));
   const ab = document.getElementById('agentBtn'); ab.classList.toggle('on', state.agent); ab.textContent = `Flex agent: ${state.agent ? 'on' : 'off'}`;
   if (page === 'day' && arg && arg !== state.day) state.day = arg;
+  const wasLive = state.live;
+  state.live = page === 'live' ? (arg === 'tomorrow' ? 'tomorrow' : 'today') : null;
+  if (state.live && state.live !== wasLive) state.jumpToNow = state.live === 'today';
   if (page === 'member' && arg) state.member = arg;
-  if (page === 'day') return viewDay();
+  if (page === 'day' || page === 'live') return viewDay();
   if (page === 'member') return viewMember();
   if (page === 'verify') return viewVerify(arg);
   return viewMonth();

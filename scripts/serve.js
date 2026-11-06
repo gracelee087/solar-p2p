@@ -31,7 +31,24 @@ const ctxFrom = (b) => {
   return { world, day: JSON.parse(readFileSync(`data/day-${b.day}.json`)), rulesOpts: b.rules === '2028' ? { ruleDateMs: ADJACENT_START } : {}, policies: loadPolicies(), memberId: b.memberId };
 };
 
+// Live: today / tomorrow from real published day-ahead prices + live solar forecast (cached 15 min).
+const liveCache = new Map();
+async function live(url) {
+  const q = new URL(url, 'http://x').searchParams;
+  const which = q.get('which') === 'tomorrow' ? 'tomorrow' : 'today';
+  const { fetchDay, berlinDate } = await import('../src/fetch-data.js');
+  const { dayView } = await import('../src/day-view.js');
+  const day = berlinDate(Date.now() + (which === 'tomorrow' ? 86400e3 : 0));
+  let c = liveCache.get(day);
+  if (!c || Date.now() - c.at > 15 * 60e3) { c = { at: Date.now(), raw: await fetchDay(day, { source: 'forecast' }) }; liveCache.set(day, c); }
+  const rules = q.get('rules') === '2028' ? '2028' : '2026';
+  const agent = q.get('agent') === '1';
+  const view = dayView(c.raw, world, rules === '2028' ? { ruleDateMs: ADJACENT_START } : {}, agent, rules + (agent ? '-agent' : ''));
+  return { ...view, live: { which, fetchedAt: c.raw.fetchedAt, sources: c.raw.sources } };
+}
+
 async function api(req, res, path) {
+  if (req.method === 'GET' && path === '/api/live') return json(res, 200, await live(req.url));
   if (req.method !== 'POST') return json(res, 405, { error: 'POST only' });
   const b = await body(req);
   if (path === '/api/agent') {
