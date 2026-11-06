@@ -1,7 +1,7 @@
 // Tariff parameters. ASSUMPTIONS for the simulation, not quotes. Shown as such in the UI.
 export const TARIFF = {
   retailCt: 35, // what a member pays the grid supplier per kWh (assumed)
-  feedInCt: 8, // what a member gets for exporting to the grid per kWh (assumed)
+  feedInCt: 7, // what a member gets for exporting to the grid per kWh (assumed)
   localSpreadCt: 12, // local price = wholesale + spread, clamped to [feedIn, retail - minSaving]
   minSavingCt: 5, // buyers always pay at least this much less than retail
 };

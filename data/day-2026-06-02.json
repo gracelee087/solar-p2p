@@ -9,7 +9,7 @@
   "price": "SMARD.de (Bundesnetzagentur), day-ahead DE-LU, series 4169, quarter-hour, EUR/MWh",
   "irradiance": "Open-Meteo historical-forecast-api minutely_15 shortwave_radiation (GHI), W/m2"
  },
- "fetchedAt": "2026-11-06T18:27:18.085Z",
+ "fetchedAt": "2026-11-06T18:38:03.832Z",
  "slots": [
   {
    "t": 1780351200000,
