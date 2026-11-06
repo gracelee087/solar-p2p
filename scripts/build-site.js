@@ -7,6 +7,7 @@ import { buildTree } from '../src/merkle.js';
 import { MEMBERS, COMMUNITIES, ZONES, LOAD_SHAPES } from '../src/community.js';
 import { ADJACENT_START } from '../src/rules42c.js';
 import { TARIFF } from '../src/config.js';
+import { FLEX, splitLoad, planAgent } from '../src/flex-agent.js';
 
 const world = { members: MEMBERS, communities: COMMUNITIES, zones: ZONES, loadShapes: LOAD_SHAPES };
 const days = readdirSync('data').filter((f) => /^day-2026-06-\d\d\.json$/.test(f)).sort().map((f) => f.slice(4, 14));
@@ -18,7 +19,10 @@ const month = [];
 for (const d of days) {
   const raw = JSON.parse(readFileSync(`data/day-${d}.json`));
   const entry = { day: d, ghiKwhM2: +(sum(raw.slots, (s) => s.ghiWm2) / 4000).toFixed(2), negSlots: raw.slots.filter((s) => s.priceEurMWh < 0).length };
-  for (const [rk, opts] of Object.entries(RULES)) {
+  for (const [rk0, opts0] of Object.entries(RULES)) for (const agent of [false, true]) {
+    const rk = agent ? `${rk0}-agent` : rk0;
+    const loadOverride = agent ? planAgent(raw, world, splitLoad(raw, world), opts0) : undefined;
+    const opts = { ...opts0, loadOverride };
     const m = matchDay(raw, world, opts);
     const hours = settleDay(m);
     const n = raw.slots.length;
@@ -37,7 +41,7 @@ for (const d of days) {
     raw.slots.forEach((s, i) => {
       for (const mem of MEMBERS) {
         per[mem.id].gen[i] = Math.round(mem.pvKwp * s.ghiWm2 * 0.8 * 0.25);
-        per[mem.id].load[i] = Math.round(mem.loadKwh * 1000 * LOAD_SHAPES[mem.profile][i]);
+        per[mem.id].load[i] = loadOverride?.[mem.id]?.[i] ?? Math.round(mem.loadKwh * 1000 * LOAD_SHAPES[mem.profile][i]);
       }
     });
     for (const l of m.legs) per[l.memberId][l.side][l.slot] += l.wh;
@@ -64,7 +68,8 @@ for (const d of days) {
 }
 writeFileSync('site/data/month.json', JSON.stringify(month));
 writeFileSync('site/data/world.json', JSON.stringify({
-  members: MEMBERS, communities: COMMUNITIES, zones: ZONES, tariff: TARIFF,
+  members: MEMBERS, communities: COMMUNITIES, zones: ZONES, tariff: TARIFF, flex: FLEX,
+  flexBacktest: Object.fromEntries(['2026', '2028'].filter((r) => existsSync(`data/flex-backtest-${r}.json`)).map((r) => [r, JSON.parse(readFileSync(`data/flex-backtest-${r}.json`)).tot])),
   devnet: existsSync('data/devnet.json') ? JSON.parse(readFileSync('data/devnet.json')) : null,
   sources: JSON.parse(readFileSync(`data/day-${days[0]}.json`)).sources,
 }));
@@ -80,4 +85,4 @@ if (existsSync('data/chain')) {
   }
 }
 writeFileSync('site/data/chain/index.json', JSON.stringify(chain.sort((a, b) => a.hourStartMs - b.hourStartMs)));
-console.log(`built ${days.length} days x ${Object.keys(RULES).length} rule sets, ${chain.length} settled hours`);
+console.log(`built ${days.length} days x ${Object.keys(RULES).length} rule sets x agent off/on, ${chain.length} settled hours`);

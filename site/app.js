@@ -2,12 +2,12 @@ import { buildTree, proofFor, verifyProof } from './merkle.js';
 
 const RPC = 'https://api.devnet.solana.com';
 const $app = document.getElementById('app');
-const state = { rules: '2026', day: '2026-06-21', slot: 48, member: 'alt-01', playing: null };
+const state = { rules: '2026', agent: false, day: '2026-06-21', slot: 48, member: 'alt-01', playing: null };
 const cache = new Map();
 const getJSON = async (u) => cache.get(u) ?? cache.set(u, await (await fetch(u)).json()).get(u);
 const world = await getJSON('data/world.json');
 const month = await getJSON('data/month.json');
-const dayData = (d = state.day, r = state.rules) => getJSON(`data/days/${d}-${r}.json`);
+const dayData = (d = state.day, r = state.rules, a = state.agent) => getJSON(`data/days/${d}-${r}${a ? '-agent' : ''}.json`);
 
 // ---------- formatting ----------
 const kwh = (wh) => (wh / 1000).toLocaleString('en', { maximumFractionDigits: wh < 10000 ? 1 : 0 });
@@ -125,7 +125,18 @@ async function viewMonth() {
         <div class="bar"><span style="width:${(100 * d[r].sharedWh) / maxShared}%;background:var(--share)"></span><span style="width:${(100 * d[r].blockedWh) / maxShared}%;background:var(--block)"></span></div>
         <div style="color:var(--muted)">☀ ${d.ghiKwhM2}${d.negSlots ? ' · <span style="color:var(--price)">−€ ' + d.negSlots + '</span>' : ''}</div></a>`).join('')}</div>
       ${legend([['var(--share)', 'shared'], ['var(--block)', 'blocked by rule'], ['var(--price)', '−€ n = quarter-hours with negative wholesale price']])}
-    </div>`;
+    </div>
+    ${(() => {
+      const b = world.flexBacktest?.[r];
+      if (!b) return '';
+      const rows = [['No shifting', b.none], ['Simple rule (11:00–15:00)', b.rule], ['Flex agent', b.agent]];
+      const max = Math.max(...rows.map(([, v]) => v.micro));
+      return `<div class="card" style="margin-top:14px"><h2>Flex agent, backtested on all ${month.length} days</h2>
+        <p class="sub" style="margin:0 0 10px">${Object.keys(world.flex).map(memberName).join(', ')} may move 30% of their load within 06:00–22:00. The agent uses the day-ahead price and the solar forecast, and only counts spare solar it may legally receive. Forecast error is not modelled (same series as forecast and actual).</p>
+        <table><tr><th>Strategy</th><th class="num">Energy cost (June)</th><th class="num">From grid</th><th class="num">From neighbours</th><th style="width:35%"></th></tr>
+        ${rows.map(([l, v]) => `<tr><td>${l}</td><td class="num">${eur(v.micro)}</td><td class="num">${kwh(v.gridWh)} kWh</td><td class="num">${kwh(v.localWh)} kWh</td><td><div class="bar" style="height:10px"><span style="width:${(100 * v.micro) / max}%;background:${l === 'Flex agent' ? 'var(--share)' : 'var(--grid)'}"></span></div></td></tr>`).join('')}
+        </table><p class="sub" style="margin:10px 0 0"><b>Agent vs no shifting: −${eur(b.none.micro - b.agent.micro)} (${((100 * (b.none.micro - b.agent.micro)) / b.none.micro).toFixed(1)}%)</b> · vs simple rule: −${eur(b.rule.micro - b.agent.micro)}. Turn the agent on (top right) to see where it moves load.</p></div>`;
+    })()}`;
 }
 
 async function viewDay() {
@@ -136,6 +147,11 @@ async function viewDay() {
   const settled = await getJSON('data/chain/index.json');
   const k = D.kpi;
   const idx = month.findIndex((m) => m.day === state.day);
+  let moved = 0;
+  if (state.agent) {
+    const B = await dayData(state.day, state.rules, false);
+    for (const id of Object.keys(world.flex)) D.members[id].load.forEach((w, i) => { moved += Math.max(0, w - B.members[id].load[i]); });
+  }
   $app.innerHTML = `
     <h1>${dname(state.day)} 2026</h1>
     <p class="sub">Real wholesale price and sunshine for this day; fictional members. Click the chart or press play.</p>
@@ -152,6 +168,7 @@ async function viewDay() {
       ${kpi(kwh(k.blockedWh) + ' kWh', 'blocked by grid-zone rule', k.blockedWh ? 'bad' : '')}
       ${kpi(k.grossPayments + ' → ' + k.transfers, `payments → transfers after netting (${k.hours} hourly batches)`)}
       ${kpi(eur(k.localMicro), 'paid to local producers')}
+      ${state.agent ? kpi(kwh(moved) + ' kWh', 'load moved by the flex agent', 'good') : ''}
     </div>
     <div class="grid two">
       <div class="card"><h2>${hhmm(s.t)} — who supplies whom</h2>${flowMap(s)}
@@ -173,7 +190,7 @@ async function viewDay() {
     <div class="card" style="margin-top:14px"><h2>Hourly settlement</h2><div class="tablewrap"><table>
       <tr><th>Hour</th><th class="num">15-min payments</th><th class="num">Transfers</th><th class="num">Volume</th><th>Merkle root</th><th>Solana devnet</th></tr>
       ${D.hours.map((h) => {
-        const onchain = settled.find((c) => c.day === state.day && c.hourStartMs === h.hourStartMs && c.rules === (state.rules === '2028' ? '2028-06-01' : 'slot date'));
+        const onchain = !state.agent && settled.find((c) => c.day === state.day && c.hourStartMs === h.hourStartMs && c.rules === (state.rules === '2028' ? '2028-06-01' : 'slot date'));
         const vol = h.transfers.filter((t) => t.from.startsWith('pool:') === false).reduce((a, t) => a + t.amountMicro, 0);
         return `<tr><td>${hhmm(h.hourStartMs)}</td><td class="num">${h.gross.payments}</td><td class="num">${h.transfers.length}</td><td class="num">${eur(vol)}</td>
           <td class="mono">${h.root.slice(0, 16)}…</td><td>${onchain ? `<a href="#/verify/${onchain.file}" class="ok">✓ settled · verify</a>` : '<span class="wait">simulated</span>'}</td></tr>`;
@@ -312,6 +329,7 @@ async function render() {
   const [, page = '', arg] = location.hash.replace(/^#/, '').split('/');
   document.querySelectorAll('[data-nav]').forEach((a) => a.classList.toggle('on', a.dataset.nav === (page || 'month')));
   document.querySelectorAll('[data-rules]').forEach((b) => b.classList.toggle('on', b.dataset.rules === state.rules));
+  const ab = document.getElementById('agentBtn'); ab.classList.toggle('on', state.agent); ab.textContent = `Flex agent: ${state.agent ? 'on' : 'off'}`;
   if (page === 'day' && arg && arg !== state.day) state.day = arg;
   if (page === 'member' && arg) state.member = arg;
   if (page === 'day') return viewDay();
@@ -320,5 +338,6 @@ async function render() {
   return viewMonth();
 }
 document.querySelectorAll('[data-rules]').forEach((b) => (b.onclick = () => { state.rules = b.dataset.rules; render(); }));
+document.getElementById('agentBtn').onclick = () => { state.agent = !state.agent; render(); };
 window.addEventListener('hashchange', () => { if (state.playing) { clearInterval(state.playing); state.playing = null; } render(); });
 render();

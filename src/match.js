@@ -18,7 +18,8 @@ export function apportion(weights, total) {
  * @param day       data/day-*.json content (slots with t, priceEurMWh, ghiWm2)
  * @param world     { members, communities, zones, loadShapes }
  * @param opts      { ruleDateMs?: date used for §42c rules (default: the slot time),
- *                    minAskMicroPerWh?: { [memberId]: number } seller floors set by the agent/policy }
+ *                    minAskMicroPerWh?: { [memberId]: number } seller floors set by the agent/policy,
+ *                    loadOverride?: { [memberId]: number[] } Wh per slot (e.g. after the flex agent moved load) }
  */
 export function matchDay(day, world, opts = {}) {
   const { members, communities, zones, loadShapes } = world;
@@ -35,7 +36,7 @@ export function matchDay(day, world, opts = {}) {
     const price = localPriceMicroPerWh(s.priceEurMWh);
     const st = members.map((m) => {
       const genWh = Math.round(m.pvKwp * s.ghiWm2 * PV_PERFORMANCE_RATIO * 0.25);
-      const loadWh = Math.round(m.loadKwh * 1000 * loadShapes[m.profile][i]);
+      const loadWh = opts.loadOverride?.[m.id]?.[i] ?? Math.round(m.loadKwh * 1000 * loadShapes[m.profile][i]);
       const self = Math.min(genWh, loadWh);
       const elig = memberEligible(m, ruleAt);
       if (!elig.ok) blocked.push({ slot: i, kind: 'member', memberId: m.id, wh: genWh + loadWh - 2 * self, reason: elig.reason });

@@ -95,3 +95,23 @@ test('blocked energy is counted once: no slot blocks more than the remaining sur
     }
   }
 });
+
+import { FLEX, splitLoad, planAgent, planSimpleRule } from '../src/flex-agent.js';
+test('flex agent: same total energy, only inside the window, never above the power cap', () => {
+  for (const opts of [{}, { ruleDateMs: ADJACENT_START }]) {
+    const parts = splitLoad(day, world);
+    for (const plan of [planAgent(day, world, parts, opts), planSimpleRule(day, parts)]) {
+      for (const [id, load] of Object.entries(plan)) {
+        const p = parts[id];
+        assert.equal(load.reduce((a, b) => a + b, 0), p.base.reduce((a, b) => a + b, 0), id);
+        load.forEach((w, i) => {
+          const moved = w - p.fixed[i];
+          assert.ok(moved >= 0, `${id} slot ${i} negative`);
+          if (!p.inWindow[i]) assert.equal(moved, 0, `${id} moved outside window at ${i}`);
+          assert.ok(moved <= p.capWh, `${id} above cap at ${i}`);
+        });
+      }
+    }
+  }
+  assert.deepEqual(Object.keys(FLEX).sort(), ['alt-05', 'bie-04', 'bie-05']);
+});
