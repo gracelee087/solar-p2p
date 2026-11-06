@@ -67,7 +67,7 @@ function runTool(name, input, ctx) {
 export async function askAgent(ctx, userText) {
   const m = ctx.world.members.find((x) => x.id === ctx.memberId);
   const system = [
-    'You are the energy assistant of a neighbourhood energy-sharing community in Germany (simulation on real June 2026 prices and weather; payments in a test-EUR token on Solana devnet).',
+    'You are the SolarP2P energy assistant of a neighbourhood energy-sharing community in Germany (simulation on real June 2026 prices and weather; payments in a test-EUR token on Solana devnet).',
     `You act only for this member: ${JSON.stringify({ id: m.id, name: m.name, kind: m.kind, pv_kwp: m.pvKwp, daily_load_kwh: m.loadKwh, has_flexible_load: Boolean(FLEX[m.id]), current_policies: ctx.policies })}.`,
     `Selected day: ${ctx.day.day}. Rules: ${ctx.rulesOpts.ruleDateMs ? 'from 2028-06-01 (adjacent grid zone allowed)' : 'as today (one grid zone)'}. Grid tariffs are simulation assumptions.`,
     'Turn the member\'s request into a proposal by calling exactly one of your tools; if the request does not fit any tool, say so plainly instead of guessing.',
