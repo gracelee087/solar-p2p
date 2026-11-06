@@ -43,10 +43,11 @@ export function settleHour(hourStartMs, legs, inter) {
   // Each pool must end at zero: what it collects from its members equals what it owes other pools.
   const poolCheck = poolLines.map((p) => ({ id: p.id, residualMicro: p.fromMembersMicro + p.interMicro }));
 
+  // Order matters on-chain (pools start empty): 1) members pay their pool, 2) pools settle with
+  // each other (netted), 3) pools pay their sellers. No pool balance goes below zero at any step.
   const transfers = [];
   for (const r of memberLines) {
     if (r.netMicro < 0) transfers.push({ from: r.id, to: `pool:${r.community}`, amountMicro: -r.netMicro, type: 'member' });
-    if (r.netMicro > 0) transfers.push({ from: `pool:${r.community}`, to: r.id, amountMicro: r.netMicro, type: 'member' });
   }
   const interPos = {};
   for (const o of inter) {
@@ -54,6 +55,9 @@ export function settleHour(hourStartMs, legs, inter) {
     interPos[`pool:${o.to}`] = (interPos[`pool:${o.to}`] ?? 0) + o.amountMicro;
   }
   for (const t of minimalTransfers(interPos)) transfers.push({ ...t, type: 'pool' });
+  for (const r of memberLines) {
+    if (r.netMicro > 0) transfers.push({ from: `pool:${r.community}`, to: r.id, amountMicro: r.netMicro, type: 'member' });
+  }
 
   // Without netting, every 15-min leg and every pool obligation would be its own payment.
   const gross = { payments: legs.length + inter.length, micro: legs.reduce((a, l) => a + l.amountMicro, 0) + inter.reduce((a, o) => a + o.amountMicro, 0) };

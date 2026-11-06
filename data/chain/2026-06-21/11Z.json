@@ -1,0 +1,240 @@
+{
+ "status": "settled",
+ "day": "2026-06-21",
+ "hourStartMs": 1782039600000,
+ "rules": "slot date",
+ "root": "6814935e691ceb82570e6302630d0e6a2a97b1c44eef716545fa058325a605b1",
+ "memo": "solar-share:v1|2026-06-21T11:00:00.000Z|root=6814935e691ceb82570e6302630d0e6a2a97b1c44eef716545fa058325a605b1|lines=17",
+ "lines": [
+  {
+   "kind": "member",
+   "id": "alt-01",
+   "community": "alt",
+   "whBought": 0,
+   "whSold": 879,
+   "netMicro": 105480
+  },
+  {
+   "kind": "member",
+   "id": "alt-02",
+   "community": "alt",
+   "whBought": 359,
+   "whSold": 0,
+   "netMicro": -43080
+  },
+  {
+   "kind": "member",
+   "id": "alt-03",
+   "community": "alt",
+   "whBought": 3536,
+   "whSold": 0,
+   "netMicro": -424320
+  },
+  {
+   "kind": "member",
+   "id": "alt-04",
+   "community": "alt",
+   "whBought": 0,
+   "whSold": 675,
+   "netMicro": 81000
+  },
+  {
+   "kind": "member",
+   "id": "alt-05",
+   "community": "alt",
+   "whBought": 0,
+   "whSold": 2341,
+   "netMicro": 280920
+  },
+  {
+   "kind": "member",
+   "id": "bie-01",
+   "community": "bie",
+   "whBought": 0,
+   "whSold": 2899,
+   "netMicro": 347880
+  },
+  {
+   "kind": "member",
+   "id": "bie-02",
+   "community": "bie",
+   "whBought": 569,
+   "whSold": 0,
+   "netMicro": -68280
+  },
+  {
+   "kind": "member",
+   "id": "bie-03",
+   "community": "bie",
+   "whBought": 56,
+   "whSold": 0,
+   "netMicro": -6720
+  },
+  {
+   "kind": "member",
+   "id": "bie-04",
+   "community": "bie",
+   "whBought": 811,
+   "whSold": 0,
+   "netMicro": -97320
+  },
+  {
+   "kind": "member",
+   "id": "bie-05",
+   "community": "bie",
+   "whBought": 1463,
+   "whSold": 0,
+   "netMicro": -175560
+  },
+  {
+   "kind": "member",
+   "id": "neu-01",
+   "community": "neu",
+   "whBought": 0,
+   "whSold": 580,
+   "netMicro": 69600
+  },
+  {
+   "kind": "member",
+   "id": "neu-02",
+   "community": "neu",
+   "whBought": 309,
+   "whSold": 0,
+   "netMicro": -37080
+  },
+  {
+   "kind": "member",
+   "id": "neu-03",
+   "community": "neu",
+   "whBought": 1591,
+   "whSold": 0,
+   "netMicro": -190920
+  },
+  {
+   "kind": "member",
+   "id": "neu-04",
+   "community": "neu",
+   "whBought": 0,
+   "whSold": 1320,
+   "netMicro": 158400
+  },
+  {
+   "kind": "pool",
+   "id": "pool:alt",
+   "fromMembersMicro": 0,
+   "interMicro": 0
+  },
+  {
+   "kind": "pool",
+   "id": "pool:bie",
+   "fromMembersMicro": 0,
+   "interMicro": 0
+  },
+  {
+   "kind": "pool",
+   "id": "pool:neu",
+   "fromMembersMicro": 0,
+   "interMicro": 0
+  }
+ ],
+ "transfers": [
+  {
+   "from": "alt-02",
+   "to": "pool:alt",
+   "amountMicro": 43080,
+   "type": "member"
+  },
+  {
+   "from": "alt-03",
+   "to": "pool:alt",
+   "amountMicro": 424320,
+   "type": "member"
+  },
+  {
+   "from": "bie-02",
+   "to": "pool:bie",
+   "amountMicro": 68280,
+   "type": "member"
+  },
+  {
+   "from": "bie-03",
+   "to": "pool:bie",
+   "amountMicro": 6720,
+   "type": "member"
+  },
+  {
+   "from": "bie-04",
+   "to": "pool:bie",
+   "amountMicro": 97320,
+   "type": "member"
+  },
+  {
+   "from": "bie-05",
+   "to": "pool:bie",
+   "amountMicro": 175560,
+   "type": "member"
+  },
+  {
+   "from": "neu-02",
+   "to": "pool:neu",
+   "amountMicro": 37080,
+   "type": "member"
+  },
+  {
+   "from": "neu-03",
+   "to": "pool:neu",
+   "amountMicro": 190920,
+   "type": "member"
+  },
+  {
+   "from": "pool:alt",
+   "to": "alt-01",
+   "amountMicro": 105480,
+   "type": "member"
+  },
+  {
+   "from": "pool:alt",
+   "to": "alt-04",
+   "amountMicro": 81000,
+   "type": "member"
+  },
+  {
+   "from": "pool:alt",
+   "to": "alt-05",
+   "amountMicro": 280920,
+   "type": "member"
+  },
+  {
+   "from": "pool:bie",
+   "to": "bie-01",
+   "amountMicro": 347880,
+   "type": "member"
+  },
+  {
+   "from": "pool:neu",
+   "to": "neu-01",
+   "amountMicro": 69600,
+   "type": "member"
+  },
+  {
+   "from": "pool:neu",
+   "to": "neu-04",
+   "amountMicro": 158400,
+   "type": "member"
+  }
+ ],
+ "gross": {
+  "payments": 56,
+  "micro": 2086560
+ },
+ "signatures": [
+  "5dr7ZaLupsr7FBqvYFniDyt6fkXJwoPcf1n8J61mPRTaz9Kv963zsxQvUDLv1pWShCkhh7KChungmZsbxU1bqEQU",
+  "23WAfaZuYJZHyGtjLd6b6PDAvnruvDoSaQw9Hk6xK8wKEhZiAC7QyY4jSEwhM8skcJoBNSHTfkzM7Y2K1dYYMP39"
+ ],
+ "note": "run scripts/verify-hour.js to check ledger == chain",
+ "txFound": 2,
+ "txExpected": 2,
+ "ledgerMatchesChain": true,
+ "mismatches": [],
+ "verifiedAt": "2026-11-06T19:18:36.467Z"
+}

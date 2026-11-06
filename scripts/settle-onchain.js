@@ -3,7 +3,7 @@
 // Usage: node scripts/settle-onchain.js 2026-06-21 12 [2028]   (local Berlin hour)
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { Connection, Keypair, PublicKey, Transaction, TransactionInstruction, clusterApiUrl, sendAndConfirmTransaction } from '@solana/web3.js';
-import { createTransferCheckedInstruction, getAccount } from '@solana/spl-token';
+import { createTransferCheckedInstruction } from '@solana/spl-token';
 import { matchDay } from '../src/match.js';
 import { settleDay } from '../src/settle.js';
 import { buildTree, memoFor } from '../src/merkle.js';
@@ -36,10 +36,6 @@ const party = (id) => (id.startsWith('pool:') ? { ...dev.pools[id.slice(5)], key
 const tree = buildTree(h.lines);
 const memo = memoFor(h.hourStartMs, tree.root, h.lines.length);
 
-// Balances before, to check ledger == chain afterwards.
-const ids = [...new Set(h.transfers.flatMap((t) => [t.from, t.to]))];
-const before = Object.fromEntries(await Promise.all(ids.map(async (id) => [id, (await getAccount(conn, new PublicKey(party(id).tokenAccount))).amount])));
-
 const sigs = [];
 for (let i = 0; i < h.transfers.length; i += PER_TX) {
   const chunk = h.transfers.slice(i, i + PER_TX);
@@ -55,22 +51,22 @@ for (let i = 0; i < h.transfers.length; i += PER_TX) {
   }
   const part = `${memo}|part=${i / PER_TX + 1}/${Math.ceil(h.transfers.length / PER_TX)}`;
   tx.add(new TransactionInstruction({ keys: [], programId: MEMO_PROGRAM, data: Buffer.from(part, 'utf8') }));
-  sigs.push(await sendAndConfirmTransaction(conn, tx, [...signers.values()], { commitment: 'confirmed' }));
+  try {
+    sigs.push(await sendAndConfirmTransaction(conn, tx, [...signers.values()], { commitment: 'confirmed' }));
+  } catch (e) {
+    // Never leave a half-settled hour unrecorded: write what landed, so a re-run is refused.
+    mkdirSync(`data/chain/${dayArg}`, { recursive: true });
+    writeFileSync(outFile, JSON.stringify({ day: dayArg, hourStartMs: h.hourStartMs, status: 'partial', failedAtTx: sigs.length + 1, signatures: sigs, error: String(e).slice(0, 500) }, null, 1));
+    console.error(`
+FAILED at tx ${sigs.length + 1}; recorded partial state in ${outFile}`);
+    throw e;
+  }
   process.stdout.write('.');
 }
 
-// Ledger == chain, to the micro-euro.
-const expected = {};
-for (const t of h.transfers) { expected[t.from] = (expected[t.from] ?? 0n) - BigInt(t.amountMicro); expected[t.to] = (expected[t.to] ?? 0n) + BigInt(t.amountMicro); }
-const mismatches = [];
-for (const id of ids) {
-  const after = (await getAccount(conn, new PublicKey(party(id).tokenAccount))).amount;
-  if (after - before[id] !== expected[id]) mismatches.push({ id, chain: String(after - before[id]), ledger: String(expected[id]) });
-}
-
 mkdirSync(`data/chain/${dayArg}`, { recursive: true });
-const record = { day: dayArg, hourStartMs: h.hourStartMs, rules: rules === '2028' ? '2028-06-01' : 'slot date', root: tree.root, memo, lines: h.lines, transfers: h.transfers, gross: h.gross, signatures: sigs, ledgerMatchesChain: mismatches.length === 0, mismatches };
+const record = { status: 'settled', day: dayArg, hourStartMs: h.hourStartMs, rules: rules === '2028' ? '2028-06-01' : 'slot date', root: tree.root, memo, lines: h.lines, transfers: h.transfers, gross: h.gross, signatures: sigs, note: 'run scripts/verify-hour.js to check ledger == chain' };
 writeFileSync(outFile, JSON.stringify(record, null, 1));
 console.log(`\nhour ${new Date(h.hourStartMs).toISOString()}: ${h.transfers.length} transfers (gross ${h.gross.payments}) in ${sigs.length} tx`);
-console.log(`ledger == chain: ${mismatches.length === 0}`, mismatches);
+console.log(`recorded ${outFile}; now run: node scripts/verify-hour.js ${dayArg} ${hourArg}${rules ? ' ' + rules : ''}`);
 console.log(`first tx: https://explorer.solana.com/tx/${sigs[0]}?cluster=devnet`);

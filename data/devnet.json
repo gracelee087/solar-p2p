@@ -1,0 +1,81 @@
+{
+ "cluster": "devnet",
+ "mint": "92wUJ9noEZnS24GtozGXR4GTNYkUrok6e7AoayG9EQi7",
+ "operator": "EJ7x5THUSohTLY9vhKo353tEpUTwLLMV7qD9g5GeAoum",
+ "pools": {
+  "alt": {
+   "owner": "EMohuSwv8nhGS8FtBKnJDRvo1r9ub5rGo8e7vVV7df1J",
+   "tokenAccount": "2V5MqhLWwNUc3uA7mqgKNqmH3QSJLV5WFJRR7nK3heRd"
+  },
+  "neu": {
+   "owner": "Ffww9mVrxUoghDxxauoMavcDTXUddcdQyiLy4sx8Bsw2",
+   "tokenAccount": "ZqxRCiBgcTRE7hJc4Fnf4hoXhnPfX52pRvpSNWFhmoR"
+  },
+  "bie": {
+   "owner": "7JYagE8HE17CrQkDUCZVKYRAvp6bpg2fepopskYktGLp",
+   "tokenAccount": "CgCuHPcL1vdRKpNLyofh1TSXGDySCkr2zVZBDbe4wPBD"
+  }
+ },
+ "members": {
+  "alt-01": {
+   "owner": "6S13yaekihe4iajiq7StzrpDkMVwGZTrmJX6sUGXhDbv",
+   "tokenAccount": "Aw3D5CsSnCdCwnLBxKKQ49HU8ZeLuX4FYPDBaAtzTdCj"
+  },
+  "alt-02": {
+   "owner": "BEVX4KGjQWsQ6jqNYRyANGsQjJ8jSkPezfEGTWXwgcZ5",
+   "tokenAccount": "AzncuxJiiHSAANTKacZjmDSG6tsjYgvH7BRZ8zxoHxwW"
+  },
+  "alt-03": {
+   "owner": "6VaiRbghVVtYpFoU4SXmJTtibpdXG6bBqFGdvxJwRFqQ",
+   "tokenAccount": "EATnqv8iptgvqYR2P34KAtnHNKoeepWVFqp8XAFBkdZo"
+  },
+  "alt-04": {
+   "owner": "3TT7ypa6e3NFyYfC4ESb4mAVTXFuoKB6bV5AHhgmCqZb",
+   "tokenAccount": "DpAGzd7B3PaMiQAodYfT5rezmw5ubFLsh8ezMKKFHvCD"
+  },
+  "alt-05": {
+   "owner": "2zjWcHG3rH7Cxty6d9BtJwjtPCgtX7imn9DA5VcHodLR",
+   "tokenAccount": "9geYKef1XJ93mBkyz7j4SMwFdv76pGsq842njcup8REC"
+  },
+  "neu-01": {
+   "owner": "F1u94vrdpyfzewQyXUZXjW7oZwDZ3TyKyoHGLTnTrcQD",
+   "tokenAccount": "3UMLD244fjtgXoJzUdpvvTAtXyhCMhJyTGuoy8kjBdvk"
+  },
+  "neu-02": {
+   "owner": "F247Fod9Ztvidvz7H1mwppmRJqPzBf6satDjNrBg6DGt",
+   "tokenAccount": "4uSUFnghomfo6i43K78EEY3sgMMMUUjF8d5JLVkTSnRe"
+  },
+  "neu-03": {
+   "owner": "5zFUpat7DYdZfzZjizzd1CWS8cRq19Xrp22baqhwNFhv",
+   "tokenAccount": "2ryyXdRv9s5TotrTeyxPKk9vv2oaqQj68xa2vtKTeU8S"
+  },
+  "neu-04": {
+   "owner": "3BSnZhZZiEE9GWyw2s8B2MbDKERFiBDXTCG4RTUAVYj6",
+   "tokenAccount": "7iAxEW1zYzq7G7wsRDCnifQ3LCRxRJK1VstZtz9kYrSf"
+  },
+  "neu-05": {
+   "owner": "4h872szh65gurAcF8UogFFMyMtFNY6uF6EY8FxXFdAYd",
+   "tokenAccount": "9cU8Tr1uMNuvmYSfRST5DxTL9ScQFR6AuFVgK5QRMaLg"
+  },
+  "bie-01": {
+   "owner": "7NMrZmNbbLV2c1jXMLkU2iGGiQZjiqTVYHwn6pr2XBr2",
+   "tokenAccount": "51w7d7C98u99rJvF8vCkD4mkkNstcNsXZ8abKghjGA1u"
+  },
+  "bie-02": {
+   "owner": "3qraeVG2smsSn6Fqi4Xk9RC5Ap6P5UwQRhViM9EEa3Nq",
+   "tokenAccount": "4LhDrzupVbuGzB83NJPEu4W88A11EtVfZksdwwQaFBco"
+  },
+  "bie-03": {
+   "owner": "7QpADxVgEujp56wxySSa7uNTZJ4FFsHz1BC5o6aHZ6PS",
+   "tokenAccount": "2ZRrM8NEMZXZzsuDYcMxxk7ypYwYYr5xc8Pkk8cY2R1q"
+  },
+  "bie-04": {
+   "owner": "7AnPEPpq2oJ4ePR4mT2aRR7fb5QxscXwwzAWCwe3mhwP",
+   "tokenAccount": "DDcYYANvMr5yBB6K5t5G7d5qapqTo1q6WvxK9j2BxWGa"
+  },
+  "bie-05": {
+   "owner": "C2eL67kUNGRMSuqEfqjcQ8X9CyhNqVuZsyt944T3gTrv",
+   "tokenAccount": "3sHDAa276s4hzmBBg7V2G95NxcsCyoYxpvKHdCtWR4BA"
+  }
+ }
+}

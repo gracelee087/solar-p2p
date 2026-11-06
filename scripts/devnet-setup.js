@@ -13,6 +13,18 @@ const DECIMALS = 6;
 const START_BALANCE = 50_000_000n; // 50 test-EUR per member
 const MONTHLY_LIMIT = 30_000_000n; // 30 test-EUR delegate limit per member
 
+// Public devnet RPC rate-limits (429): retry with backoff, and pause between accounts.
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+async function retry(fn) {
+  for (let i = 0; ; i++) {
+    try { return await fn(); } catch (e) {
+      if (i >= 6 || !/429|Too Many|rate limit/i.test(String(e))) throw e;
+      console.error(`  rate-limited, retry ${i + 1} in ${2 * 2 ** i}s`);
+      await sleep(2000 * 2 ** i);
+    }
+  }
+}
+
 const conn = new Connection(process.env.SOLANA_RPC ?? clusterApiUrl('devnet'), 'confirmed');
 mkdirSync('keys', { recursive: true });
 const key = (name) => {
@@ -50,17 +62,19 @@ console.log('test-EUR mint', state.mint);
 const pub = { cluster: 'devnet', mint: state.mint, operator: operator.publicKey.toBase58(), pools: {}, members: {} };
 for (const c of Object.keys(COMMUNITIES)) {
   const k = key(`pool-${c}`);
-  const ata = await getOrCreateAssociatedTokenAccount(conn, operator, mint, k.publicKey);
+  const ata = await retry(() => getOrCreateAssociatedTokenAccount(conn, operator, mint, k.publicKey));
+  await sleep(500);
   pub.pools[c] = { owner: k.publicKey.toBase58(), tokenAccount: ata.address.toBase58() };
 }
 for (const m of MEMBERS) {
   const k = key(`member-${m.id}`);
-  const ata = await getOrCreateAssociatedTokenAccount(conn, operator, mint, k.publicKey);
-  if (ata.amount === 0n) await mintTo(conn, operator, mint, ata.address, operator, START_BALANCE);
+  const ata = await retry(() => getOrCreateAssociatedTokenAccount(conn, operator, mint, k.publicKey));
+  if (ata.amount === 0n) await retry(() => mintTo(conn, operator, mint, ata.address, operator, START_BALANCE));
   if (ata.delegatedAmount === 0n) {
     // The member signs this: "the operator may move up to 30 test-EUR from my account". Revocable any time.
-    await approveChecked(conn, operator, mint, ata.address, operator.publicKey, k, MONTHLY_LIMIT, DECIMALS);
+    await retry(() => approveChecked(conn, operator, mint, ata.address, operator.publicKey, k, MONTHLY_LIMIT, DECIMALS));
   }
+  await sleep(500);
   pub.members[m.id] = { owner: k.publicKey.toBase58(), tokenAccount: ata.address.toBase58() };
   process.stdout.write('.');
 }

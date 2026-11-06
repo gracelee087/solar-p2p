@@ -70,3 +70,16 @@ test('merkle: every line verifies, a changed line does not', () => {
     });
   }
 });
+
+test('transfer order: no pool ever goes below zero when executed in sequence from empty pools', () => {
+  for (const m of [m2026, m2028]) {
+    for (const h of settleDay(m)) {
+      const bal = {};
+      for (const t of h.transfers) {
+        bal[t.from] = (bal[t.from] ?? 0) - t.amountMicro;
+        bal[t.to] = (bal[t.to] ?? 0) + t.amountMicro;
+        if (t.from.startsWith('pool:')) assert.ok(bal[t.from] >= 0, `${t.from} negative @ ${h.hourStartMs}`);
+      }
+    }
+  }
+});
