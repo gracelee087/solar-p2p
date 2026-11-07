@@ -102,7 +102,3 @@ node scripts/verify-hour.js 2026-06-21 12          # check ledger == chain from 
 | `scripts/` | data fetch, devnet setup, settlement, verification, server |
 | `site/` | web app (Month, Day, Member, Verify) |
 | `data/` | real price and irradiance days, settled-hour records |
-
-## Related work
-
-Peer-to-peer and community solar trading exists in other markets, for example [Power Ledger](https://www.powerledger.io/platform), [SOLshare](https://futurestartup.com/2020/07/05/solshare-raises-1-1m-in-new-funding/) in Bangladesh, and utility-run pilots in India such as [Tata Power-DDL](https://tatapower-ddl.com/solar-rooftop/p-to-p-trading). SolarP2P focuses on Germany's § 42c rules: grid-zone checks with dates, quarter-hour data, netting between communities, and per-member verifiable statements.
